@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planification Production — Boulangerie</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN SYSTEM — Optimisé impression N&B + lecture rapide
+   ============================================================ */
+:root {
+  --bg:#f0ede8; --surface:#fff; --surface2:#f7f5f2;
+  --border:#d8d3cc; --border-strong:#b8b0a6;
+  --text:#111; --text-muted:#555; --text-light:#999;
+  --wheat:#6b3a1f; --wheat-light:#f0e6dc; --wheat-mid:#a0622a;
+  --green:#1a5c38; --green-light:#e0f0e8;
+  --blue:#163d6a; --blue-light:#deeaf7;
+  --amber:#5a420a; --amber-light:#faf0d0;
+  --red:#7a1a1a; --red-light:#fce8e8;
+  --font:'Inter',system-ui,sans-serif; --mono:'DM Mono',monospace;
+  --r:4px; --r-lg:7px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13px;line-height:1.45;}
+
+/* ---- DATE PICKER ---- */
+.date-picker{position:relative;}
+.date-display{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:var(--r);padding:4px 12px;font-family:var(--mono);font-size:12px;cursor:pointer;white-space:nowrap;display:block;}
+.date-display:hover{background:rgba(255,255,255,.25);}
+.date-dropdown{display:none;position:absolute;top:calc(100% + 6px);left:0;background:var(--wheat);border:1px solid rgba(255,255,255,.25);border-radius:var(--r-lg);box-shadow:0 6px 20px rgba(0,0,0,.35);z-index:300;min-width:320px;}
+.date-dropdown.open{display:block;}
+.date-days{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:8px 10px 6px;}
+.day-btn{padding:6px 4px;border:1px solid rgba(255,255,255,.2);border-radius:var(--r);background:rgba(255,255,255,.1);color:#fff;font-family:var(--font);font-size:11px;cursor:pointer;text-align:center;line-height:1.3;}
+.day-btn:hover{background:rgba(255,255,255,.25);}
+.day-btn.today{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.2);}
+.day-btn.selected{background:#fff;color:var(--wheat);font-weight:700;border-color:#fff;}
+.day-btn .day-name{font-weight:600;font-size:12px;}
+.day-btn .day-date{font-size:10px;opacity:.8;font-family:var(--mono);}
+/* ---- TOPBAR TABS ---- */
+.topbar{background:var(--wheat);color:#fff;padding:0 1rem;display:flex;align-items:center;justify-content:space-between;height:50px;position:sticky;top:0;z-index:200;box-shadow:0 2px 6px rgba(0,0,0,.25);}
+.topbar h1{font-size:15px;font-weight:700;letter-spacing:.01em;}
+.chip{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:var(--r);padding:3px 10px;font-family:var(--mono);font-size:12px;cursor:pointer;}
+.chip:hover{background:rgba(255,255,255,.25);}
+.topbar-right{display:flex;gap:6px;align-items:center;}
+.btn-tab{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:var(--r);padding:5px 11px;font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer;}
+.btn-tab:hover{background:rgba(255,255,255,.22);}
+.btn-tab.active{background:rgba(255,255,255,.32);font-weight:700;border-color:rgba(255,255,255,.5);}
+.btn-gist{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:var(--r);width:30px;height:30px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+/* ---- LAYOUT ---- */
+.layout{display:flex;min-height:calc(100vh - 50px);}
+.sidebar{width:200px;background:var(--surface);border-right:2px solid var(--border);padding:8px 0;position:sticky;top:50px;height:calc(100vh - 50px);overflow-y:auto;flex-shrink:0;}
+.sbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-light);padding:10px 12px 3px;font-family:var(--mono);font-weight:500;}
+.sidebar a{display:block;padding:5px 12px;font-size:12px;color:var(--text-muted);text-decoration:none;border-left:3px solid transparent;}
+.sidebar a:hover{color:var(--wheat);background:var(--wheat-light);border-left-color:var(--wheat-mid);}
+.sidebar a.active{color:var(--wheat);background:var(--wheat-light);border-left-color:var(--wheat);font-weight:700;}
+.main{flex:1;padding:1rem 1.25rem;max-width:1040px;}
+
+/* ---- QUICK TOTALS ---- */
+.qtotals{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:1rem;}
+.qtot{background:var(--surface);border:2px solid var(--border);border-radius:var(--r-lg);padding:.6rem .75rem;text-align:center;}
+.qtot .ql{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-light);margin-bottom:1px;}
+.qtot .qv{font-family:var(--mono);font-size:19px;font-weight:700;color:var(--wheat);}
+.qtot .qu{font-size:9px;color:var(--text-muted);font-family:var(--mono);}
+
+/* ---- LEVAINS ---- */
+.levains-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin-bottom:1rem;}
+.levain-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--r-lg);overflow:hidden;}
+.levain-head{padding:6px 12px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between;}
+.lh-liq{background:var(--blue-light);color:var(--blue);border-bottom:2px solid #b0ccec;}
+.lh-eng{background:var(--amber-light);color:var(--amber);border-bottom:2px solid #d8c070;}
+.lh-dur{background:var(--green-light);color:var(--green);border-bottom:2px solid #90c8a8;}
+.lh-total{font-family:var(--mono);font-size:13px;font-weight:700;}
+.levain-rows{padding:4px 0;}
+.levain-row{display:flex;align-items:center;justify-content:space-between;padding:3px 12px;font-size:12px;}
+.lr-name{color:var(--text-muted);}
+.lr-val{font-family:var(--mono);font-weight:600;color:var(--text);}
+.lr-souche .lr-val{color:var(--red);font-weight:700;}
+
+/* ---- SEC TITLE ---- */
+.sec-title{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-light);margin:1rem 0 .5rem;padding-bottom:4px;border-bottom:2px solid var(--border-strong);}
+
+/* ---- RECIPE CARD ---- */
+.rcard{background:var(--surface);border:2px solid var(--border-strong);border-radius:var(--r-lg);margin-bottom:.75rem;overflow:hidden;}
+.rhead{padding:7px 12px;background:var(--wheat-light);border-bottom:2px solid var(--border-strong);display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;flex-wrap:wrap;}
+.rname{font-size:13px;font-weight:700;color:var(--wheat);min-width:140px;}
+.rpoids{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--wheat-mid);background:rgba(0,0,0,.06);border-radius:var(--r);padding:1px 6px;white-space:nowrap;}
+.rcontrols{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.cg{display:flex;align-items:center;gap:4px;}
+.cg label{font-size:10px;color:var(--text-muted);font-family:var(--mono);white-space:nowrap;font-weight:500;}
+.cg input[type=number]{width:58px;padding:3px 6px;border:2px solid var(--border-strong);border-radius:var(--r);font-family:var(--mono);font-size:13px;font-weight:700;color:var(--wheat);background:#fff;text-align:center;}
+.cg input[type=number]:focus{outline:none;border-color:var(--wheat);box-shadow:0 0 0 2px rgba(107,58,31,.15);}
+.sportif-cg{border-left:2px solid var(--border-strong);padding-left:8px;margin-left:2px;}
+.sportif-cg label{color:var(--green)!important;}
+.sportif-cg input{color:var(--green)!important;border-color:var(--green)!important;}
+
+/* ---- META ROW ---- */
+.rmeta{padding:4px 12px;background:#fafaf8;border-bottom:1px solid var(--border);display:flex;gap:1rem;flex-wrap:wrap;font-size:10.5px;font-family:var(--mono);}
+.mi .mk{color:var(--text-light);}
+.mi .mv{color:var(--text);font-weight:600;}
+.mi .mv.ok{color:var(--green);}
+.mi .mv.warn{color:var(--amber);font-weight:700;}
+
+/* ---- COMMENT ZONE ---- */
+.rcomment{padding:4px 12px;border-bottom:1px solid var(--border);background:#fffef8;}
+.rcomment textarea{width:100%;border:1px dashed var(--border-strong);border-radius:var(--r);background:transparent;font-family:var(--font);font-size:11px;color:var(--text-muted);resize:none;padding:3px 6px;line-height:1.4;}
+.rcomment textarea:focus{outline:none;border-color:var(--amber);background:#fff;}
+.rcomment textarea::placeholder{color:#ccc;font-style:italic;}
+
+/* ---- INGREDIENT TABLE ---- */
+.itable{width:100%;border-collapse:collapse;font-size:12px;}
+.itable th{font-family:var(--mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;padding:5px 12px;border-bottom:2px solid var(--border-strong);font-weight:600;}
+.itable th:first-child{text-align:left;background:#e0dbd4;color:var(--text-muted);}
+.itable th:nth-child(2){text-align:right;background:#e0dbd4;color:var(--text-light);}
+.itable th:nth-child(3){text-align:right;background:#1a1714;color:#fff;}
+.itable tr:nth-child(even){background:#fafaf8;}
+.itable td{padding:5px 12px;border-bottom:1px solid var(--border);}
+.itable .td-name{font-weight:500;color:var(--text);text-align:left;}
+.itable .td-base{text-align:right;font-family:var(--mono);font-size:11.5px;color:var(--text-light);background:#f5f3f0;}
+.itable .td-jour{text-align:right;font-family:var(--mono);font-size:13px;background:#fff;}
+.itable .td-jour strong{color:#111;font-weight:700;}
+.itable .no-prod{color:var(--text-light);font-size:11px;}
+.itable .tr-total td{border-top:2px solid var(--border-strong);background:#e0dbd4;font-weight:700;}
+.itable .tr-total .td-name{font-size:9.5px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);}
+.itable .tr-total .td-base{background:#e0dbd4;color:var(--text-muted);}
+.itable .tr-total .td-jour{background:#e0dbd4;font-size:14px;}
+.itable .tr-total .td-jour strong{color:var(--wheat);}
+.itable .empois-header td{background:var(--amber-light);color:var(--amber);font-size:9px;font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;padding:3px 12px;}
+.itable .row-empois{background:var(--amber-light);}
+.itable .row-empois .td-name{color:var(--amber);padding-left:22px;font-style:italic;}
+.itable .row-empois .td-base{background:var(--amber-light);}
+.itable .row-empois .td-jour{background:var(--amber-light);}
+.itable .row-empois-fini{border-top:1px dashed var(--border-strong);}
+.itable .row-sportif td{background:var(--green-light);}
+.itable .row-sportif .td-name{color:var(--green);font-weight:700;}
+.itable .row-sportif .td-jour strong{color:var(--green);}
+.itable .row-cran td{background:var(--red-light);}
+.itable .row-cran .td-name{color:var(--red);font-weight:700;}
+.itable .row-cran .td-jour strong{color:var(--red);}
+
+/* ---- SUMMARY ---- */
+.sum-card{background:var(--surface);border:2px solid var(--border-strong);border-radius:var(--r-lg);margin-bottom:.75rem;overflow:hidden;}
+.sum-head{padding:7px 12px;background:var(--blue-light);border-bottom:2px solid #b0ccec;font-size:12px;font-weight:700;color:var(--blue);display:flex;justify-content:space-between;align-items:center;}
+.sum-head.green{background:var(--green-light);border-bottom-color:#90c8a8;color:var(--green);}
+.stable{width:100%;border-collapse:collapse;font-size:11.5px;}
+.stable th{font-family:var(--mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--text-light);padding:4px 12px;text-align:right;border-bottom:2px solid var(--border);background:var(--surface2);}
+.stable th:first-child{text-align:left;}
+.stable td{padding:5px 12px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono);}
+.stable td:first-child{text-align:left;font-family:var(--font);font-size:12px;}
+.stable tr:last-child td{border-bottom:none;}
+.stable .gt td{font-weight:700;background:var(--blue-light);color:var(--blue);border-top:2px solid #b0ccec;}
+.stable .gt.green td{background:var(--green-light);color:var(--green);}
+.synth-block{display:none;}
+.synth-block.visible{display:block;}
+
+/* ---- TRACABILITE ---- */
+.trac-toolbar{background:var(--surface);border:2px solid var(--border);border-radius:var(--r-lg);padding:10px 12px;margin-bottom:.75rem;}
+.btn-action{padding:4px 10px;border:1px solid var(--border-strong);border-radius:var(--r);background:#fff;font-family:var(--mono);font-size:11px;cursor:pointer;color:var(--text-muted);}
+.btn-action:hover{border-color:var(--wheat-mid);color:var(--wheat);}
+.btn-action.green{border-color:#90c8a8;color:var(--green);}
+.btn-action.red{border-color:#f0c0c0;color:var(--red);}
+#gist-status{padding:2px 8px;border-radius:var(--r);background:var(--surface2);border:1px solid var(--border);font-family:var(--mono);font-size:11px;}
+#gist-status.ok{background:var(--green-light);border-color:#90c8a8;color:var(--green);}
+#gist-status.err{background:var(--red-light);border-color:#f0c0c0;color:var(--red);}
+#gist-status.syncing{background:var(--blue-light);border-color:#b0ccec;color:var(--blue);}
+.hist-entry{background:var(--surface);border:2px solid var(--border-strong);border-radius:var(--r-lg);margin-bottom:.6rem;overflow:hidden;}
+.hist-head{padding:6px 12px;background:var(--wheat-light);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;}
+.hist-date{font-size:13px;font-weight:700;color:var(--wheat);}
+.hist-meta{font-family:var(--mono);font-size:10px;color:var(--text-muted);}
+.hist-del{background:none;border:none;color:var(--text-light);cursor:pointer;font-size:13px;padding:2px 5px;border-radius:var(--r);}
+.hist-del:hover{background:var(--red-light);color:var(--red);}
+.hist-toggle{background:none;border:none;text-align:left;padding:5px 12px;font-family:var(--mono);font-size:10px;color:var(--text-muted);cursor:pointer;width:100%;display:flex;gap:5px;}
+.hist-toggle:hover{background:var(--surface2);}
+.hist-detail{display:none;}
+.hist-detail.open{display:block;}
+.hist-cb{accent-color:var(--wheat);}
+
+/* ---- PRINT ---- */
+@media print{
+  @page{size:A4;margin:9mm 11mm;}
+  body{background:#fff;font-size:10px;}
+  .topbar,.sidebar,.qtotals,.no-print,.trac-toolbar,.btn-tab,.btn-gist{display:none!important;}
+  .layout{display:block;}
+  .main{padding:0;max-width:none;}
+  .rcard{break-inside:avoid;border:1.5px solid #888;margin-bottom:5px;border-radius:0;}
+  .levains-grid{display:grid;grid-template-columns:repeat(3,1fr);}
+  .levain-card{border:1.5px solid #888;border-radius:0;}
+  .rhead{background:#e8e0d8!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:4px 10px;}
+  .rname{font-size:11px;color:#000;}
+  .itable td,.itable th,.stable td,.stable th{padding:2.5px 10px;font-size:9px;}
+  .itable th:nth-child(3){background:#333!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .itable .td-base{background:#f0f0f0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .itable .td-jour{background:#fff!important;}
+  .itable .tr-total td{background:#ddd!important;}
+  .rmeta{padding:2px 10px;font-size:9px;}
+  .rcomment{padding:2px 10px;}
+  .rcomment textarea{border:none;background:transparent;font-size:9px;color:#444;resize:none;height:auto;}
+  .sec-title{margin:5px 0 3px;font-size:8px;border-bottom:1.5px solid #888;}
+  .synth-block{display:none!important;}
+  body.print-synth .synth-block{display:block!important;}
+  body.print-history .tracabilite-view{display:block!important;}
+  body.print-history .main:not(.tracabilite-view){display:none!important;}
+  body.print-history .trac-toolbar,.no-print{display:none!important;}
+  body.print-history .hist-detail{display:block!important;}
+  /* N&B : force noir pur sur blanc */
+  .lh-liq,.lh-eng,.lh-dur,.rhead,.sum-head,.hist-head{background:#e0e0e0!important;color:#000!important;}
+  .itable .tr-total td,.stable .gt td{background:#e0e0e0!important;color:#000!important;}
+  .itable .qv-main{color:#000!important;}
+  .levain-card,.sum-card,.hist-entry{border:1.5px solid #666;}
+}
+@media(max-width:620px){.sidebar{display:none;}.main{padding:.75rem;}.qtotals{grid-template-columns:repeat(2,1fr);}.rhead{flex-direction:column;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <h1>🌾 Production</h1>
+    <div class="date-picker" id="date-picker">
+      <span class="date-display" id="dateBadge" onclick="toggleDatePicker()">…</span>
+      <div class="date-dropdown" id="date-dropdown">
+        <div class="date-days" id="date-days"></div>
+        <div style="display:flex;gap:6px;padding:6px 10px 8px;border-top:1px solid rgba(255,255,255,.15);">
+          <input type="date" id="date-custom" onchange="setCustomDate(this.value)"
+            style="flex:1;padding:4px 7px;border-radius:3px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-family:var(--mono);font-size:11px;">
+          <button onclick="closeDatePicker()" style="padding:4px 10px;background:rgba(255,255,255,.2);border:none;border-radius:3px;color:#fff;cursor:pointer;font-size:11px;">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn-tab" id="tab-production" onclick="showView('production')">📋 Production</button>
+    <button class="btn-tab" id="tab-tracabilite" onclick="showView('tracabilite')">🌿 Traçabilité</button>
+    <button class="btn-tab no-print" onclick="printCurrent()">⎙ Imprimer</button>
+    <button class="btn-gist no-print" onclick="openGistConfig()" title="Cloud Gist">☁</button>
+  </div>
+</div>
+
+<div class="layout">
+<nav class="sidebar">
+  <div class="sbl">Levains</div>
+  <a href="#levains">Calcul levains</a>
+  <div class="sbl">Baguettes</div>
+  <a href="#trad">Tradition</a>
+  <a href="#gresto">Graines resto</a>
+  <a href="#bgraines">Graines</a>
+  <a href="#mais">Maïs</a>
+  <a href="#rustique">Rustique T110</a>
+  <div class="sbl">Pains spéciaux</div>
+  <a href="#nieulais">Le Nieulais</a>
+  <a href="#galet">Le Galet T80</a>
+  <a href="#odette">L'Odette T150</a>
+  <a href="#odgraines">L'Odette graines</a>
+  <a href="#seigle">Tourte de Seigle</a>
+  <a href="#sarrasin">Le Sarrasin</a>
+  <a href="#epeautre">Grand Épeautre</a>
+  <a href="#engrain">Engrain (P. Épeautre)</a>
+  <div class="sbl">Viennoiserie</div>
+  <a href="#brioche">Brioche</a>
+  <a href="#mie">Pain de Mie</a>
+  <a href="#cacao">Pain Cacao</a>
+  <div class="sbl">Récap</div>
+  <a href="#summary" onclick="showSynth()">Synthèses</a>
+  <a href="#tracabilite-view" onclick="showView('tracabilite')">🌿 Historique</a>
+</nav>
+
+<!-- =================== VUE PRODUCTION =================== -->
+<main class="main" id="view-production">
+
+  <!-- QUICK TOTALS -->
+  <div class="qtotals no-print">
+    <div class="qtot"><div class="ql">Pâte crue</div><div class="qv" id="qt-pate">—</div><div class="qu">kg</div></div>
+    <div class="qtot"><div class="ql">Farine</div><div class="qv" id="qt-farine">—</div><div class="qu">kg</div></div>
+    <div class="qtot"><div class="ql">Lev. liquide</div><div class="qv" id="qt-levliq">—</div><div class="qu">g</div></div>
+    <div class="qtot"><div class="ql">Lev. dur</div><div class="qv" id="qt-levdur">—</div><div class="qu">g</div></div>
+    <div class="qtot"><div class="ql">Pièces</div><div class="qv" id="qt-pieces">—</div><div class="qu">unités</div></div>
+  </div>
+
+  <!-- LEVAINS -->
+  <div class="sec-title" id="levains">Levains à préparer — souche = 30 %</div>
+  <div class="levains-grid">
+    <div class="levain-card">
+      <div class="levain-head lh-liq"><span>Levain liquide blé</span><span class="lh-total" id="ll-total">— g</span></div>
+      <div class="levain-rows">
+        <div class="levain-row lr-souche"><span class="lr-name">Souche (30 %)</span><span class="lr-val" id="ll-souche">—</span></div>
+        <div class="levain-row"><span class="lr-name">Eau</span><span class="lr-val" id="ll-eau">—</span></div>
+        <div class="levain-row"><span class="lr-name">Farine T65</span><span class="lr-val" id="ll-farine">—</span></div>
+        <div class="levain-row" style="font-size:10px;border-top:1px solid var(--border);margin-top:2px;padding-top:4px;"><span class="lr-name" style="color:var(--text-light);">Trad · Rustique · Sarrasin · Brioche</span></div>
+      </div>
+    </div>
+    <div class="levain-card">
+      <div class="levain-head lh-eng"><span>Levain liquide engrain</span><span class="lh-total" id="le-total">— g</span></div>
+      <div class="levain-rows">
+        <div class="levain-row lr-souche"><span class="lr-name">Souche (30 %)</span><span class="lr-val" id="le-souche">—</span></div>
+        <div class="levain-row"><span class="lr-name">Eau</span><span class="lr-val" id="le-eau">—</span></div>
+        <div class="levain-row"><span class="lr-name">Farine Engrain</span><span class="lr-val" id="le-farine">—</span></div>
+        <div class="levain-row" style="font-size:10px;border-top:1px solid var(--border);margin-top:2px;padding-top:4px;"><span class="lr-name" style="color:var(--text-light);">Petit Épeautre (Engrain)</span></div>
+      </div>
+    </div>
+    <div class="levain-card">
+      <div class="levain-head lh-dur"><span>Levain dur</span><span class="lh-total" id="ld-total">— g</span></div>
+      <div class="levain-rows">
+        <div class="levain-row lr-souche"><span class="lr-name">Souche (30 %)</span><span class="lr-val" id="ld-souche">—</span></div>
+        <div class="levain-row"><span class="lr-name">Eau</span><span class="lr-val" id="ld-eau">—</span></div>
+        <div class="levain-row"><span class="lr-name">Farine T65</span><span class="lr-val" id="ld-farine">—</span></div>
+        <div class="levain-row" style="font-size:10px;border-top:1px solid var(--border);margin-top:2px;padding-top:4px;"><span class="lr-name" style="color:var(--text-light);">Nieulais · Galet · Odette · Tourte · G.Épeautre</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== BAGUETTES ===== -->
+  <div class="sec-title">Baguettes</div>
+
+  <!-- BAGUETTE TRADITION -->
+  <div class="rcard" id="trad">
+    <div class="rhead">
+      <div><span class="rname">Baguette Tradition</span> <span class="rpoids">350 g</span></div>
+      <div class="rcontrols">
+        <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-trad" value="160" onchange="recalc()"></div>
+      </div>
+    </div>
+    <div class="rmeta">
+      <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-trad-coef">—</span></span>
+      <span class="mi"><span class="mk">Pâte </span><span class="mv ok" id="m-trad-pate">—</span></span>
+      <span class="mi"><span class="mk">Bac 3 500 g → </span><span class="mv" id="m-trad-bacs">—</span></span>
+      <span class="mi"><span class="mk">Tx hyd. </span><span class="mv">~89,7 %</span></span>
+    </div>
+    <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-trad" oninput="autoResize(this)"></textarea></div>
+    <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-trad"></tbody></table>
+  </div>
+
+  <!-- PAIN GRAINES RESTAURATION -->
+  <div class="rcard" id="gresto">
+    <div class="rhead">
+      <div><span class="rname">Pain Graines — Restauration</span> <span class="rpoids">1 300 g</span></div>
+      <div class="rcontrols">
+        <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-gresto" value="2" onchange="recalc()"></div>
+      </div>
+    </div>
+    <div class="rmeta">
+      <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-gresto-coef">—</span></span>
+      <span class="mi"><span class="mk">Pâte </span><span class="mv ok" id="m-gresto-pate">—</span></span>
+      <span class="mi"><span class="mk">Bac 3 000 g → </span><span class="mv" id="m-gresto-bacs">—</span></span>
+    </div>
+    <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-gresto" oninput="autoResize(this)"></textarea></div>
+    <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-gresto"></tbody></table>
+  </div>
+
+  <!-- BAGUETTE GRAINES -->
+  <div class="rcard" id="bgraines">
+    <div class="rhead">
+      <div><span class="rname">Baguette Graines</span> <span class="rpoids">300 g</span></div>
+      <div class="rcontrols">
+        <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-bgraines" value="20" onchange="recalc()"></div>
+      </div>
+    </div>
+    <div class="rmeta">
+      <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-bgraines-coef">—</span></span>
+      <span class="mi"><span class="mk">Pâte </span><span class="mv ok" id="m-bgraines-pate">—</span></span>
+      <span class="mi"><span class="mk">Bac 3 000 g → </span><span class="mv" id="m-bgraines-bacs">—</span></span>
+    </div>
+    <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-bgraines" oninput="autoResize(this)"></textarea></div>
+    <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-bgraines"></tbody></table>
+  </div>
+
+  <!-- BAGUETTE MAÏS -->
+  <div class="rcard" id="mais">
+    <div class="rhead">
+      <div><span class="rname">Baguette Maïs</span> <span class="rpoids">300 g</span></div>
+      <div class="rcontrols">
+        <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-mais" value="20" onchange="recalc()"></div>
+      </div>
+    </div>
+    <div class="rmeta">
+      <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-mais-coef">—</span></span>
+      <span class="mi"><span class="mk">Pâte </span><span class="mv ok" id="m-mais-pate">—</span></span>
+      <span class="mi"><span class="mk">Bac 3 000 g → </span><span class="mv" id="m-mais-bacs">—</span></span>
+    </div>
+    <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-mais" oninput="autoResize(this)"></textarea></div>
+    <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-mais"></tbody></table>
+  </div>
+
+  <!-- BAGUETTE RUSTIQUE -->
+  <div class="rcard" id="rustique">
+    <div class="rhead">
+      <div><span class="rname">Baguette Rustique T110</span> <span class="rpoids">350 g</span></div>
+      <div class="rcontrols">
+        <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-rustique" value="30" onchange="recalc()"></div>
+      </div>
+    </div>
+    <div class="rmeta">
+      <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-rustique-coef">—</span></span>
+      <span class="mi"><span class="mk">Pâte </span><span class="mv ok" id="m-rustique-pate">—</span></span>
+      <span class="mi"><span class="mk">Bac 3 000 g → </span><span class="mv" id="m-rustique-bacs">—</span></span>
+      <span class="mi"><span class="mk">Tx hyd. </span><span class="mv">~78,4 %</span></span>
+    </div>
+    <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-rustique" oninput="autoResize(this)"></textarea></div>
+    <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-rustique"></tbody></table>
+  </div>
+
+  <!-- ===== PAINS SPECIAUX ===== -->
+  <div class="sec-title">Pains spéciaux</div>
+
+  <!-- NIEULAIS — formats 650 / 1300 / 2500 + Sportif -->
+  <div class="rcard" id="nieulais">
+    <div class="rhead">
+      <div><span class="rname">Le Nieulais T110</span> <span class="rpoids">650 · 1300 · 2500 g</span></div>
+      <div class="rcontrols">
+        <div class="cg"><label>650 g :</label><input type="number" min="0" id="q-nieulais-650" value="0" onchange="recalc()"></div>
+        <div class="cg"><label>1 300 g :</label><input type="number" min="0" id="q-nieulais-1300" value="16" onchange="recalc()"></div>
+        <div class="cg"><label>2 500 g :</label><input type="number" min="0" id="q-nieulais-2500" value="0" onchange="recalc()"></div>
+        <div class="cg sportif-cg">
+          <label>🏃 Sportif :</label><input type="number" min="0" id="q-nieulais-sportif" value="0" onchange="recalc()">
+        </div>
+      </div>
+    </div>
+    <div class="rmeta">
+      <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-nieulais-coef">—</span></span>
+      <span class="mi"><span class="mk">Pâte Nieulais </span><span class="mv ok" id="m-nieulais-pate">—</span></span>
+      <span class="mi"><span class="mk">+ Mél. sportif </span><span class="mv" id="m-nieulais-sportif-mix">—</span></span>
+      <span class="mi"><span class="mk">Bac 6 500 g → </span><span class="mv" id="m-nieulais-bacs">—</span></span>
+      <span class="mi"><span class="mk">Total pièces </span><span class="mv" id="m-nieulais-pieces">—</span></span>
+    </div>
+    <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-nieulais" oninput="autoResize(this)"></textarea></div>
+    <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-nieulais"></tbody></table>
+  </div>
+
+  <!-- GALET — formats 650 / 1300 / 2500 -->
+  <div class="rcard" id="galet">
+    <div class="rhead">
+      <div><span class="rname">Le Galet T80</span> <span class="rpoids">650 · 1300 · 2500 g</span></div>
+      <div class="rcontrols">
+        <div class="cg"><label>650 g :</label><input type="number" min="0" id="q-galet-650" value="0" onchange="recalc()"></div>
+        <div class="cg"><label>1 300 g :</label><input type="number" min="0" id="q-galet-1300" value="21" onchange="recalc()"></div>
+        <div class="cg"><label>2 500 g :</label><input type="number" min="0" id="q-galet-2500" value="0" onchange="recalc()"></div>
+      </div>
+    </div>
+    <div class="rmeta">
+      <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-galet-coef">—</span></span>
+      <span class="mi"><span class="mk">Pâte </span><span class="mv ok" id="m-galet-pate">—</span></span>
+      <span class="mi"><span class="mk">Bac 6 500 g → </span><span class="mv" id="m-galet-bacs">—</span></span>
+      <span class="mi"><span class="mk">Total pièces </span><span class="mv" id="m-galet-pieces">—</span></span>
+    </div>
+    <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-galet" oninput="autoResize(this)"></textarea></div>
+    <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-galet"></tbody></table>
+  </div>
+
+  <!-- ODETTE — formats 650 / 1300 -->
+  <div class="rcard" id="odette">
+    <div class="rhead">
+      <div><span class="rname">L'Odette Josette T150</span> <span class="rpoids">650 · 1300 g</span></div>
+      <div class="rcontrols">
+        <div class="cg"><label>650 g :</label><input type="number" min="0" id="q-odette-650" value="0" onchange="recalc()"></div>
+        <div class="cg"><label>1 300 g :</label><input type="number" min="0" id="q-odette-1300" value="18" onchange="recalc()"></div>
+      </div>
+    </div>
+    <div class="rmeta">
+      <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-odette-coef">—</span></span>
+      <span class="mi"><span class="mk">Pâte </span><span class="mv ok" id="m-odette-pate">—</span></span>
+      <span class="mi"><span class="mk">Bac 6 500 g → </span><span class="mv" id="m-odette-bacs">—</span></span>
+      <span class="mi"><span class="mk">Total pièces </span><span class="mv" id="m-odette-pieces">—</span></span>
+      <span class="mi"><span class="mk">Tx hyd. </span><span class="mv">~94,2 %</span></span>
+    </div>
+    <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-odette" oninput="autoResize(this)"></textarea></div>
+    <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-odette"></tbody></table>
+  </div>
+
+  <!-- ODETTE GRAINES — formats 650 / 1300 -->
+  <div class="rcard" id="odgraines">
+    <div class="rhead">
+      <div><span class="rname">L'Odette aux Graines</span> <span class="rpoids">650 · 1300 g</span></div>
+      <div class="rcontrols">
+        <div class="cg"><label>650 g :</label><input type="number" min="0" id="q-odgraines-650" value="0" onchange="recalc()"></div>
+        <div class="cg"><label>1 300 g :</label><input type="number" min="0" id="q-odgraines-1300" value="8" onchange="recalc()"></div>
+      </div>
+    </div>
+    <div class="rmeta">
+      <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-odgraines-coef">—</span></span>
+      <span class="mi"><span class="mk">Pâte </span><span class="mv ok" id="m-odgraines-pate">—</span></span>
+      <span class="mi"><span class="mk">Bac 6 500 g → </span><span class="mv" id="m-odgraines-bacs">—</span></span>
+      <span class="mi"><span class="mk">Total pièces </span><span class="mv" id="m-odgraines-pieces">—</span></span>
+      <span class="mi" style="color:var(--blue);"><span class="mk">⚠ Pâte Odette propre</span></span>
+    </div>
+    <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-odgraines" oninput="autoResize(this)"></textarea></div>
+    <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-odgraines"></tbody></table>
+  </div>
+
+  <!-- TOURTE DE SEIGLE + SEIGLE CRANBERRIES -->
+  <div class="rcard" id="seigle">
+    <div class="rhead">
+      <div><span class="rname">Tourte de Seigle</span> <span class="rpoids">900 g</span></div>
+      <div class="rcontrols">
+        <div class="cg"><label>Tourte nature :</label><input type="number" min="0" id="q-seigle-nature" value="0" onchange="recalc()"></div>
+        <div class="cg" style="border-left:2px solid var(--border-strong);padding-left:8px;margin-left:2px;">
+          <label style="color:var(--red);">🍒 Cranberries :</label><input type="number" min="0" id="q-seigle-cran" value="0" onchange="recalc()" style="color:var(--red)!important;border-color:var(--red)!important;">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--text-muted);">× 1 100 g</span>
+        </div>
+      </div>
+    </div>
+    <div class="rmeta">
+      <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-seigle-coef">—</span></span>
+      <span class="mi"><span class="mk">Pâte seigle </span><span class="mv ok" id="m-seigle-pate">—</span></span>
+      <span class="mi"><span class="mk">+ Cranberries </span><span class="mv" id="m-seigle-cran">—</span></span>
+      <span class="mi"><span class="mk">Bac 6 500 g → </span><span class="mv" id="m-seigle-bacs">—</span></span>
+      <span class="mi"><span class="mk">Tx hyd. </span><span class="mv">~81,6 %</span></span>
+    </div>
+    <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-seigle" oninput="autoResize(this)"></textarea></div>
+    <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-seigle"></tbody></table>
+  </div>
+
+  <!-- SARRASIN -->
+  <div class="rcard" id="sarrasin">
+    <div class="rhead">
+      <div><span class="rname">Le Sarrasin</span> <span class="rpoids">1 100 g</span></div>
+      <div class="rcontrols">
+        <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-sarrasin" value="2" onchange="recalc()"></div>
+      </div>
+    </div>
+    <div class="rmeta">
+      <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-sarrasin-coef">—</span></span>
+      <span class="mi"><span class="mk">Pâte </span><span class="mv ok" id="m-sarrasin-pate">—</span></span>
+      <span class="mi"><span class="mk">Bac 6 500 g → </span><span class="mv" id="m-sarrasin-bacs">—</span></span>
+      <span class="mi"><span class="mk">Tx hyd. </span><span class="mv">~110,9 %</span></span>
+    </div>
+    <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-sarrasin" oninput="autoResize(this)"></textarea></div>
+    <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-sarrasin"></tbody></table>
+  </div>
+
+  <!-- GRAND ÉPEAUTRE -->
+  <div class="rcard" id="epeautre">
+    <div class="rhead">
+      <div><span class="rname">Grand Épeautre</span> <span class="rpoids">1 300 g</span></div>
+      <div class="rcontrols">
+        <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-epeautre" value="0" onchange="recalc()"></div>
+      </div>
+    </div>
+    <div class="rmeta">
+      <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-epeautre-coef">—</span></span>
+      <span class="mi"><span class="mk">Pâte </span><span class="mv ok" id="m-epeautre-pate">—</span></span>
+      <span class="mi"><span class="mk">Bac 6 500 g → </span><span class="mv" id="m-epeautre-bacs">—</span></span>
+      <span class="mi"><span class="mk">Levain dur</span></span>
+    </div>
+    <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-epeautre" oninput="autoResize(this)"></textarea></div>
+    <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-epeautre"></tbody></table>
+  </div>
+
+  <!-- ENGRAIN (PETIT ÉPEAUTRE) -->
+  <div class="rcard" id="engrain">
+    <div class="rhead">
+      <div><span class="rname">Engrain — Petit Épeautre</span> <span class="rpoids">900 g</span></div>
+      <div class="rcontrols">
+        <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-engrain" value="8" onchange="recalc()"></div>
+      </div>
+    </div>
+    <div class="rmeta">
+      <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-engrain-coef">—</span></span>
+      <span class="mi"><span class="mk">Pâte </span><span class="mv ok" id="m-engrain-pate">—</span></span>
+      <span class="mi"><span class="mk">Bac 6 500 g → </span><span class="mv" id="m-engrain-bacs">—</span></span>
+      <span class="mi"><span class="mk">Levain liq. engrain · Tx hyd. ~92 %</span></span>
+    </div>
+    <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-engrain" oninput="autoResize(this)"></textarea></div>
+    <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-engrain"></tbody></table>
+  </div>
+
+  <!-- ===== VIENNOISERIE ===== -->
+  <div class="sec-title">Viennoiserie & pâtisserie</div>
+
+  <!-- BRIOCHE -->
+  <div class="rcard" id="brioche">
+    <div class="rhead">
+      <div><span class="rname">Brioche</span> <span class="rpoids">450 g</span></div>
+      <div class="rcontrols">
+        <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-brioche" value="20" onchange="recalc()"></div>
+      </div>
+    </div>
+    <div class="rmeta">
+      <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-brioche-coef">—</span></span>
+      <span class="mi"><span class="mk">Pâte </span><span class="mv ok" id="m-brioche-pate">—</span></span>
+      <span class="mi"><span class="mk">Bac 4 500 g → </span><span class="mv" id="m-brioche-bacs">—</span></span>
+    </div>
+    <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-brioche" oninput="autoResize(this)"></textarea></div>
+    <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-brioche"></tbody></table>
+  </div>
+
+  <!-- PAIN DE MIE -->
+  <div class="rcard" id="mie">
+    <div class="rhead">
+      <div><span class="rname">Pain de Mie</span> <span class="rpoids">550 g</span></div>
+      <div class="rcontrols">
+        <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-mie" value="8" onchange="recalc()"></div>
+      </div>
+    </div>
+    <div class="rmeta">
+      <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-mie-coef">—</span></span>
+      <span class="mi"><span class="mk">Pâte </span><span class="mv ok" id="m-mie-pate">—</span></span>
+      <span class="mi"><span class="mk">Bac 7 000 g → </span><span class="mv" id="m-mie-bacs">—</span></span>
+    </div>
+    <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-mie" oninput="autoResize(this)"></textarea></div>
+    <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-mie"></tbody></table>
+  </div>
+
+  <!-- PAIN CACAO -->
+  <div class="rcard" id="cacao">
+    <div class="rhead">
+      <div><span class="rname">Pain Cacao</span> <span class="rpoids">150 g</span></div>
+      <div class="rcontrols">
+        <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-cacao" value="0" onchange="recalc()"></div>
+      </div>
+    </div>
+    <div class="rmeta">
+      <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-cacao-coef">—</span></span>
+      <span class="mi"><span class="mk">Pâte </span><span class="mv ok" id="m-cacao-pate">—</span></span>
+      <span class="mi"><span class="mk">Bac 3 500 g → </span><span class="mv" id="m-cacao-bacs">—</span></span>
+    </div>
+    <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-cacao" oninput="autoResize(this)"></textarea></div>
+    <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-cacao"></tbody></table>
+  </div>
+
+  <!-- ===== SYNTHESES (cachées, imprimables à la demande) ===== -->
+  <div class="sec-title" id="summary">Synthèses journalières</div>
+  <div class="sum-card synth-block" id="synth-prod">
+    <div class="sum-head">
+      <span>Synthèse production</span>
+      <button class="btn-action no-print" style="background:var(--wheat);color:#fff;border-color:var(--wheat);" onclick="saveProductionDay()">💾 Enregistrer → Traçabilité</button>
+    </div>
+    <table class="stable">
+      <thead><tr><th>Produit</th><th style="text-align:left;">Détail</th><th>Pâte (g)</th><th>Bacs</th></tr></thead>
+      <tbody id="sum-body"></tbody>
+      <tfoot><tr class="gt"><td>TOTAL</td><td id="s-pieces" style="text-align:left;font-family:var(--font);">—</td><td id="s-pate">—</td><td>—</td></tr></tfoot>
+    </table>
+  </div>
+  <div class="sum-card synth-block" id="synth-farine">
+    <div class="sum-head green">Totaux matières premières (g)</div>
+    <table class="stable">
+      <thead><tr><th>Matière</th><th>Quantité (g)</th><th>% farine</th></tr></thead>
+      <tbody id="farine-body"></tbody>
+    </table>
+  </div>
+  <div class="no-print" style="margin-top:.5rem;margin-bottom:1rem;">
+    <button class="btn-action" onclick="toggleSynth()" id="btn-synth-toggle">▶ Afficher les synthèses</button>
+  </div>
+
+</main>
+
+<!-- =================== VUE TRACABILITE =================== -->
+<main class="main tracabilite-view" id="tracabilite-view" style="display:none;">
+  <div class="trac-toolbar no-print">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <span style="font-family:var(--mono);font-size:10px;color:var(--text-muted);">Période :</span>
+      <input type="date" id="trac-from" onchange="renderHistory()" style="font-family:var(--mono);font-size:11px;padding:3px 7px;border:1px solid var(--border-strong);border-radius:var(--r);">
+      <span style="font-family:var(--mono);font-size:10px;">→</span>
+      <input type="date" id="trac-to" onchange="renderHistory()" style="font-family:var(--mono);font-size:11px;padding:3px 7px;border:1px solid var(--border-strong);border-radius:var(--r);">
+      <button class="btn-action" onclick="clearFilter()">Tout</button>
+      <button class="btn-action green" onclick="printHistory()">⎙ Imprimer traçabilité</button>
+      <button class="btn-action red" id="btn-delete-sel" style="display:none;" onclick="deleteSelected()">🗑 Supprimer sélection</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+      <span id="gist-status">☁ Gist : non configuré</span>
+      <button class="btn-action" onclick="syncGist()">↕ Sync</button>
+      <button class="btn-action" onclick="openGistConfig()">⚙ Configurer</button>
+    </div>
+  </div>
+  <div class="sec-title">Cumul matières bio — période sélectionnée</div>
+  <div class="sum-card">
+    <div class="sum-head green" style="display:flex;justify-content:space-between;">
+      <span>Totaux cumulés (matières bio)</span><span id="cumul-period" style="font-family:var(--mono);font-size:10px;">—</span>
+    </div>
+    <table class="stable"><thead><tr><th>Matière</th><th>Total cumulé (g)</th><th>Journées</th></tr></thead><tbody id="cumul-body"></tbody></table>
+  </div>
+  <div class="sec-title">Historique des journées de production</div>
+  <div id="history-list"></div>
+  <div id="history-empty" style="display:none;text-align:center;color:var(--text-light);padding:2rem;font-size:12px;">Aucune journée enregistrée.</div>
+</main>
+</div>
+
+<!-- GIST MODAL -->
+<div id="gist-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:var(--r-lg);padding:1.25rem;max-width:460px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.3);">
+    <div style="font-size:14px;font-weight:700;color:var(--wheat);margin-bottom:.75rem;">☁ Configuration GitHub Gist</div>
+    <p style="font-size:11.5px;color:var(--text-muted);margin-bottom:.75rem;line-height:1.6;">Créez un <a href="https://github.com/settings/tokens/new?scopes=gist" target="_blank" style="color:var(--blue);">Personal Access Token</a> GitHub avec le scope <code>gist</code> seulement.</p>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div><label style="font-family:var(--mono);font-size:9.5px;color:var(--text-light);text-transform:uppercase;letter-spacing:.06em;">Token GitHub</label>
+        <input type="password" id="gist-token-input" placeholder="ghp_xxxx…" style="width:100%;margin-top:3px;padding:6px 9px;border:1px solid var(--border-strong);border-radius:var(--r);font-family:var(--mono);font-size:12px;"></div>
+      <div><label style="font-family:var(--mono);font-size:9.5px;color:var(--text-light);text-transform:uppercase;letter-spacing:.06em;">Gist ID (vide = créer automatiquement)</label>
+        <input type="text" id="gist-id-input" placeholder="a1b2c3… (optionnel)" style="width:100%;margin-top:3px;padding:6px 9px;border:1px solid var(--border-strong);border-radius:var(--r);font-family:var(--mono);font-size:12px;"></div>
+    </div>
+    <div style="display:flex;gap:7px;margin-top:1rem;justify-content:flex-end;">
+      <button onclick="closeGistModal()" style="padding:5px 14px;border:1px solid var(--border-strong);border-radius:var(--r);background:#fff;cursor:pointer;font-size:12px;">Annuler</button>
+      <button onclick="saveGistConfig()" style="padding:5px 14px;background:var(--wheat);color:#fff;border:none;border-radius:var(--r);cursor:pointer;font-size:12px;font-weight:600;">Enregistrer & tester</button>
+    </div>
+    <div id="gist-modal-msg" style="margin-top:.5rem;font-size:11px;font-family:var(--mono);"></div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// DONNÉES RECETTES
+// ================================================================
+const RECIPES = {
+  trad:     { sz:350,  bac:3500, totalBase:2003, ingr:[['Farine T65 (verte)',1000],['Eau coulage',680],['Sel',17],['Levain liquide',150],['Levure',6],['Eau bassinage',150]] },
+  gresto:   { sz:1300, bac:3000, totalBase:1350, ingr:[['Pâte baguette tradition',1250],['Graines (mélange)',100]] },
+  bgraines: { sz:300,  bac:3000, totalBase:1070, ingr:[['Pâte baguette tradition',1000],['Graines torrefiées',50],['Eau de trempage',0],['Eau de bassinage',20]] },
+  mais:     { sz:300,  bac:3000, totalBase:1274, ingr:[['Pâte baguette',1000],['Empois de maïs',200],['Graines tournesol',40],['Sel',4],['Grain de maïs',30]] },
+  rustique: { sz:350,  bac:3000, totalBase:2203, ingr:[['Farine T110 Bio',1000],['Farine de Seigle T170',100],['Eau de coulage',720],['Sel',17],['Levain liquide',200],['Levure',6],['Eau bassinage',160]] },
+  // Multi-formats (nieulais, galet : 650/1300/2500 ; odette, odgraines : 650/1300)
+  nieulais: { bac:6500, totalBase:2387, ingr:[['Farine T110',850],['Seigle T170',150],['Farine de Gaude',50],['Eau coulage',810],['Sel',17],['Levain dur',300],['Eau bassinage',210]] },
+  galet:    { bac:6500, totalBase:2247, ingr:[['Farine T80',1000],['Eau coulage',800],['Sel',17],['Levain dur',300],['Eau bassinage',130]] },
+  odette:   { bac:6500, totalBase:2347, ingr:[['Josette T150',1000],['Eau coulage',850],['Sel',17],['Levain dur',300],['Eau bassinage',180]] },
+  odgraines:{ bac:6500, totalBase:1100, ingr:[['Pâte Odette (propre)',1000],['Graines torrefiées',50],['Eau de trempage',30],['Eau de bassinage',20]] },
+  // Seigle : pâte nature (900g) + variante cranberries (1100g = 900g pâte + 10% cranberries)
+  seigle:   { sz:900,  bac:6500, totalBase:2438, ingr:[['Seigle T130',1000],['Eau coulage (48°C min)',920],['Sel',18],['Levain dur',500]] },
+  sarrasin: { sz:1100, bac:6500, totalBase:2271, ingr:[['Farine Sarrazin',1000],['Eau coulage (48°C min)',1150],['Sel',16],['Levure',5],['Levain liquide',100]] },
+  // Grand Épeautre — levain dur, recette à compléter si besoin
+  epeautre: { sz:1300, bac:6500, totalBase:2432, ingr:[['Farine Grand Épeautre',1000],['Eau de coulage (48°C min)',920],['Levain dur',300],['Sel',12],['Eau bassinage',200]] },
+  // Engrain = Petit Épeautre — levain liquide engrain
+  engrain:  { sz:900,  bac:6500, totalBase:2432, ingr:[['Farine Engrain',1000],['Eau de coulage (48°C min)',920],['Levain liquide Engrain',500],['Sel',12]] },
+  brioche:  { sz:450,  bac:4500, totalBase:2531, ingr:[['Farine T65 (verte)',1000],['Beurre Bio',280],['Œuf',400],['Miel',80],['Sucre Roux',210],['Sel',16],['Levure',45],['Levain liquide',500]] },
+  mie:      { sz:550,  bac:7000, totalBase:2011, empoisSub:true, ingr:[['— Empois : Farine',100],['— Empois : Eau',200],['Farine (principale)',900],['Eau',420],['Sel',16],['Sucre',60],['Levure',30],['Empois (fini)',300],['Vinaigre de cidre',35],['Butternut',250]] },
+  cacao:    { sz:150,  bac:3500, totalBase:2448, ingr:[['Farine T65 BIO',1000],['Poudre de Cacao',70],['Pépites Cacao',200],['Sucre Roux',100],['Eau coulage',650],['Sel',18],['Eau bassinage',400],['Levure',10]] },
+};
+
+const RECIPE_LABELS = {
+  trad:'Baguette Tradition',gresto:'Pain Graines Resto',bgraines:'Baguette Graines',
+  mais:'Baguette Maïs',rustique:'Baguette Rustique',nieulais:'Le Nieulais',
+  galet:'Le Galet T80',odette:"L'Odette T150",odgraines:"L'Odette Graines",
+  seigle:'Tourte de Seigle',sarrasin:'Le Sarrasin',epeautre:'Grand Épeautre',
+  engrain:'Engrain (P. Épeautre)',brioche:'Brioche',mie:'Pain de Mie',cacao:'Pain Cacao'
+};
+
+// Recettes multi-formats : [label, taille_g]
+const MULTI_FMT = {
+  nieulais: [['650',650],['1300',1300],['2500',2500]],
+  galet:    [['650',650],['1300',1300],['2500',2500]],
+  odette:   [['650',650],['1300',1300]],
+  odgraines:[['650',650],['1300',1300]],
+};
+
+const SPORTIF_PATE = 2000, SPORTIF_MIX = 200;
+// Taux de cranberries = 10% de la pâte seigle produite pour les pièces cranberries
+const CRAN_RATIO = 0.10; // 10% cranberries / poids pièce cranberries
+
+function fmt(n){return Math.round(n).toLocaleString('fr-FR');}
+function fmtC(n){return n.toFixed(4);}
+function g(id){return parseInt(document.getElementById(id)?.value)||0;}
+
+// ---- CALC RECETTE ----
+function calcRecipe(key){
+  const r = RECIPES[key];
+  let totalPate=0, totalPieces=0, extra={};
+
+  if(MULTI_FMT[key]){
+    MULTI_FMT[key].forEach(([lbl,sz])=>{
+      const n=g(`q-${key}-${sz}`);
+      totalPate+=n*sz; totalPieces+=n;
+    });
+    // Sportif (Nieulais only)
+    if(key==='nieulais'){
+      const ns=g('q-nieulais-sportif');
+      totalPate+=ns*SPORTIF_PATE; totalPieces+=ns;
+      extra.sportifQty=ns; extra.sportifMix=ns*SPORTIF_MIX;
+      extra.fmt650=g('q-nieulais-650'); extra.fmt1300=g('q-nieulais-1300'); extra.fmt2500=g('q-nieulais-2500');
+    } else {
+      extra[`fmt${MULTI_FMT[key][0][1]}`]=g(`q-${key}-${MULTI_FMT[key][0][1]}`);
+      extra[`fmt${MULTI_FMT[key][1][1]}`]=g(`q-${key}-${MULTI_FMT[key][1][1]}`);
+      if(MULTI_FMT[key][2]) extra[`fmt${MULTI_FMT[key][2][1]}`]=g(`q-${key}-${MULTI_FMT[key][2][1]}`);
+    }
+  } else if(key==='seigle'){
+    const nN=g('q-seigle-nature'), nC=g('q-seigle-cran');
+    // Nature: 900g · Cranberries: 1100g dont ~1000g pâte seigle + 100g cranberries
+    const pateNature = nN*900;
+    const pateSeigle4cran = nC*1000; // base pâte pour cranberries
+    const cranGrams = nC*100; // 10% de 1000g (= poids cranberries par pièce)
+    totalPate = pateNature + pateSeigle4cran;
+    totalPieces = nN + nC;
+    extra.cranGrams=cranGrams; extra.nNature=nN; extra.nCran=nC;
+  } else {
+    totalPate = g(`q-${key}`) * r.sz;
+    totalPieces = g(`q-${key}`);
+  }
+
+  const coef = r.totalBase>0 ? totalPate/r.totalBase : 0;
+  const items = r.ingr.map(([nm,base])=>({name:nm,base,qty:Math.round(base*coef)}));
+  return {qty:totalPieces,totalPate,coef,items,bac:r.bac,pieces:totalPieces,...extra,sz:r.sz||0};
+}
+
+// ---- RENDER TABLE ----
+function renderTable(key, res) {
+  const tb = document.getElementById('tb-' + key);
+  if (!tb) return;
+  const r = RECIPES[key];
+  const hasProd = res.totalPate > 0;
+  let html = '';
+
+  if (r.empoisSub) {
+    html += `<tr class="empois-header"><td colspan="3">↳ Préparation empois (sous-recette)</td></tr>`;
+  }
+
+  r.ingr.forEach(([name, base], i) => {
+    const isEmpois = name.startsWith('— Empois');
+    const displayName = isEmpois ? name.replace('— Empois : ', '') : name;
+    const qty = res.items[i] ? res.items[i].qty : 0;
+    const rowClass = isEmpois ? 'row-empois' : (name === 'Empois (fini)' ? 'row-empois-fini' : '');
+    const qtyHtml = hasProd
+      ? `<strong>${fmt(qty)}</strong>`
+      : `<span class="no-prod">—</span>`;
+    html += `<tr class="${rowClass}">
+      <td class="td-name">${displayName}</td>
+      <td class="td-base">${fmt(base)}</td>
+      <td class="td-jour">${qtyHtml}</td>
+    </tr>`;
+  });
+
+  // Ligne sportif
+  if (key === 'nieulais' && (res.sportifQty || 0) > 0) {
+    html += `<tr class="row-sportif">
+      <td class="td-name">🏃 Mélange sportif ×${res.sportifQty}</td>
+      <td class="td-base">200</td>
+      <td class="td-jour"><strong>${fmt(res.sportifMix)}</strong></td>
+    </tr>`;
+  }
+
+  // Ligne cranberries
+  if (key === 'seigle' && (res.cranGrams || 0) > 0) {
+    html += `<tr class="row-cran">
+      <td class="td-name">🍒 Cranberries ×${res.nCran}</td>
+      <td class="td-base">100</td>
+      <td class="td-jour"><strong>${fmt(res.cranGrams)}</strong></td>
+    </tr>`;
+  }
+
+  // Ligne total
+  html += `<tr class="tr-total">
+    <td class="td-name">TOTAL</td>
+    <td class="td-base">${fmt(r.totalBase)}</td>
+    <td class="td-jour">${hasProd ? `<strong>${fmt(res.totalPate)} g</strong>` : '<span class="no-prod">0 pièce</span>'}</td>
+  </tr>`;
+
+  tb.innerHTML = html;
+}
+
+// ---- SET META ----
+function setMeta(key,res){
+  const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  s(`m-${key}-coef`,fmtC(res.coef));
+  s(`m-${key}-pate`,fmt(res.totalPate)+' g');
+  const nb=res.bac>0&&res.totalPate>0?Math.ceil(res.totalPate/res.bac):0;
+  const be=document.getElementById(`m-${key}-bacs`);
+  if(be){be.textContent=res.totalPate>0?`${nb} bac${nb>1?'s':''} (≈${fmt(res.totalPate/Math.max(nb,1))} g)`:'—';be.className='mv'+(nb>3?' warn':'');}
+  const pe=document.getElementById(`m-${key}-pieces`);
+  if(pe) pe.textContent=res.pieces>0?res.pieces+' pce'+(res.pieces>1?'s':''):'—';
+  // Sportif
+  if(key==='nieulais'){
+    s('m-nieulais-sportif-mix',res.sportifQty>0?fmt(res.sportifMix)+' g':'—');
+  }
+  // Seigle cranberries
+  if(key==='seigle'){
+    s('m-seigle-cran',res.cranGrams>0?fmt(res.cranGrams)+' g de cranberries':'—');
+  }
+}
+
+// ---- LEVAINS — souche 30% ----
+function calcLevains(R){
+  const iq=(key,nm)=>{const res=R[key];if(!res||res.coef===0)return 0;const i=RECIPES[key].ingr.find(([n])=>n===nm);return i?Math.round(i[1]*res.coef):0;};
+  const T4=iq('trad','Levain liquide')+iq('rustique','Levain liquide')+iq('sarrasin','Levain liquide')+iq('brioche','Levain liquide');
+  const T5=iq('engrain','Levain liquide Engrain');
+  const T6=iq('nieulais','Levain dur')+iq('galet','Levain dur')+iq('odette','Levain dur')+iq('seigle','Levain dur')+iq('epeautre','Levain dur')+iq('sarrasin','Levain liquide')+100;
+  const mk=(T,liq=true)=>{const s=Math.round(T*.3),r=T-s;return{souche:s,eau:Math.round(r*(liq?.5:.34)),farine:liq?r-Math.round(r*.5):r-Math.round(r*.34)};};
+  const ll=mk(T4,true),le=mk(T5,true),ld=mk(T6,false);
+  return{T4,ll,T5,le,T6,ld};
+}
+function renderLevains(L){
+  const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  s('ll-total',fmt(L.T4)+' g');s('ll-souche',fmt(L.ll.souche)+' g');s('ll-eau',fmt(L.ll.eau)+' g');s('ll-farine',fmt(L.ll.farine)+' g');
+  s('le-total',fmt(L.T5)+' g');s('le-souche',fmt(L.le.souche)+' g');s('le-eau',fmt(L.le.eau)+' g');s('le-farine',fmt(L.le.farine)+' g');
+  s('ld-total',fmt(L.T6)+' g');s('ld-souche',fmt(L.ld.souche)+' g');s('ld-eau',fmt(L.ld.eau)+' g');s('ld-farine',fmt(L.ld.farine)+' g');
+}
+
+// ---- FARINES ----
+const FLOUR_MAP={
+  trad:['Farine T65 (verte)'],gresto:[],bgraines:[],mais:['Empois de maïs','Grain de maïs'],
+  rustique:['Farine T110 Bio','Farine de Seigle T170'],nieulais:['Farine T110','Seigle T170','Farine de Gaude'],
+  galet:['Farine T80'],odette:['Josette T150'],odgraines:[],seigle:['Seigle T130'],
+  sarrasin:['Farine Sarrazin'],epeautre:['Farine Grand Épeautre'],engrain:['Farine Engrain'],
+  brioche:['Farine T65 (verte)'],mie:['Farine (principale)','— Empois : Farine','Empois (fini)'],cacao:['Farine T65 BIO'],
+};
+
+// ---- RECALC ----
+function recalc(){
+  try {
+  const R={};let totalPate=0,totalFarine=0,totalPieces=0;
+  const farineMap={},sumRows=[];
+  Object.keys(RECIPES).forEach(key=>{
+    const res=calcRecipe(key);R[key]=res;
+    renderTable(key,res);setMeta(key,res);
+    totalPate+=res.totalPate;totalPieces+=res.qty;
+    const fl=FLOUR_MAP[key]||[];
+    res.items.forEach(({name,qty})=>{if(fl.includes(name)){totalFarine+=qty;farineMap[name]=(farineMap[name]||0)+qty;}});
+    sumRows.push({key,label:RECIPE_LABELS[key],res});
+  });
+  const L=calcLevains(R);renderLevains(L);
+  document.getElementById('qt-pate').textContent=(totalPate/1000).toFixed(1);
+  document.getElementById('qt-farine').textContent=(totalFarine/1000).toFixed(1);
+  document.getElementById('qt-levliq').textContent=fmt(L.T4);
+  document.getElementById('qt-levdur').textContent=fmt(L.T6);
+  document.getElementById('qt-pieces').textContent=totalPieces;
+
+  // Summary table
+  const sb=document.getElementById('sum-body');
+  if(sb){sb.innerHTML=sumRows.map(({key,label,res})=>{
+    if(res.totalPate===0)return'';
+    const nb=res.bac>0?Math.ceil(res.totalPate/res.bac):0;
+    let detail;
+    if(MULTI_FMT[key]){
+      const p=[];
+      MULTI_FMT[key].forEach(([lbl,sz])=>{const n=g(`q-${key}-${sz}`);if(n)p.push(`${n}×${lbl}g`);});
+      if(key==='nieulais'&&res.sportifQty)p.push(`${res.sportifQty}×Sportif`);
+      detail=p.join(' + ')||'—';
+    }else if(key==='seigle'){
+      detail=(res.nNature?`${res.nNature}×nature`:'')+(res.nNature&&res.nCran?' + ':'')+(res.nCran?`${res.nCran}×cranberries`:'');
+    }else{
+      detail=g(`q-${key}`)+' × '+fmt(RECIPES[key].sz||0)+' g';
+    }
+    return`<tr><td>${label}</td><td style="text-align:left;font-size:10.5px;">${detail}</td><td>${fmt(res.totalPate)}</td><td>${nb}</td></tr>`;
+  }).join('');}
+  document.getElementById('s-pieces').textContent=totalPieces+' pièces';
+  document.getElementById('s-pate').textContent=fmt(totalPate)+' g';
+
+  // Farine table
+  const fb=document.getElementById('farine-body');
+  if(fb){const tot=Object.values(farineMap).reduce((a,b)=>a+b,0);
+    fb.innerHTML=Object.entries(farineMap).sort((a,b)=>b[1]-a[1]).map(([n,q])=>`<tr><td>${n}</td><td>${fmt(q)}</td><td>${tot?Math.round(q/tot*100):'—'} %</td></tr>`).join('')+
+    `<tr class="gt green"><td>TOTAL FARINE</td><td>${fmt(tot)}</td><td>100 %</td></tr>`;}
+
+  window._lastCalc={sumRows,farineMap,lev:L,totalPate,totalPieces};
+  } catch(e) { console.error('recalc error:', e); }
+}
+
+// ---- SYNTH TOGGLE ----
+let synthVisible=false;
+function toggleSynth(){
+  synthVisible=!synthVisible;
+  document.querySelectorAll('.synth-block').forEach(e=>e.classList.toggle('visible',synthVisible));
+  document.getElementById('btn-synth-toggle').textContent=(synthVisible?'▼ Masquer':'▶ Afficher')+' les synthèses';
+}
+function showSynth(){if(!synthVisible)toggleSynth();}
+
+// ---- COMMENT AUTO-RESIZE ----
+function autoResize(t){t.style.height='auto';t.style.height=(t.scrollHeight)+'px';}
+
+// ---- VIEWS ----
+function showView(v){
+  const vp=document.getElementById('view-production');
+  const vt=document.getElementById('tracabilite-view');
+  document.getElementById('tab-production').classList.toggle('active',v==='production');
+  document.getElementById('tab-tracabilite').classList.toggle('active',v==='tracabilite');
+  if(v==='production'){vp.style.display='';vt.style.display='none';}
+  else{vp.style.display='none';vt.style.display='';renderHistory();}
+}
+
+function printCurrent(){
+  const isTrac=document.getElementById('tracabilite-view').style.display!=='none';
+  if(isTrac){printHistory();return;}
+  const withSynth=confirm('Inclure les tableaux de synthèse dans l\'impression ?\nOK = Oui · Annuler = Production uniquement');
+  document.body.classList.toggle('print-synth',withSynth);
+  document.querySelectorAll('.synth-block').forEach(e=>e.classList.toggle('visible',withSynth));
+  window.print();
+  document.body.classList.remove('print-synth');
+  document.querySelectorAll('.synth-block').forEach(e=>e.classList.remove('visible'));
+}
+
+// ================================================================
+// TRACABILITÉ — localStorage + Gist
+// ================================================================
+const STORE_KEY='boulan_trac_v2',GIST_CFG_KEY='boulan_gist_cfg';
+function loadLocal(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'[]');}catch{return[];}}
+function saveLocal(d){localStorage.setItem(STORE_KEY,JSON.stringify(d));}
+function gistCfg(){try{return JSON.parse(localStorage.getItem(GIST_CFG_KEY)||'{}');}catch{return{};}}
+
+async function gistGet(){const c=gistCfg();if(!c.token||!c.gistId)return null;
+  try{const r=await fetch(`https://api.github.com/gists/${c.gistId}`,{headers:{Authorization:`token ${c.token}`}});
+    if(!r.ok)return null;const d=await r.json();const ct=d.files?.['tracabilite.json']?.content;return ct?JSON.parse(ct):[];}catch{return null;}}
+
+async function gistPut(entries){const c=gistCfg();if(!c.token||!c.gistId)return false;
+  try{const r=await fetch(`https://api.github.com/gists/${c.gistId}`,{method:'PATCH',
+    headers:{Authorization:`token ${c.token}`,Accept:'application/vnd.github+json','Content-Type':'application/json'},
+    body:JSON.stringify({files:{'tracabilite.json':{content:JSON.stringify(entries,null,2)}}})});return r.ok;}catch{return false;}}
+
+async function gistCreate(token){
+  const r=await fetch('https://api.github.com/gists',{method:'POST',
+    headers:{Authorization:`token ${token}`,Accept:'application/vnd.github+json','Content-Type':'application/json'},
+    body:JSON.stringify({description:'Traçabilité Boulangerie Bio',public:false,files:{'tracabilite.json':{content:'[]'}}})});
+  if(!r.ok)return null;return(await r.json()).id;}
+
+function setGistStatus(msg,cls=''){const e=document.getElementById('gist-status');if(e){e.textContent=msg;e.className=cls;}}
+
+async function syncGist(){
+  const c=gistCfg();if(!c.token||!c.gistId){setGistStatus('☁ Non configuré','err');return;}
+  setGistStatus('↕ Synchronisation…','syncing');
+  const remote=await gistGet();if(remote===null){setGistStatus('✗ Erreur connexion','err');return;}
+  const local=loadLocal(),merged=[...remote];
+  local.forEach(e=>{if(!merged.find(r=>r.id===e.id))merged.push(e);});
+  merged.sort((a,b)=>b.savedAt?.localeCompare(a.savedAt||'')||0);
+  saveLocal(merged);await gistPut(merged);
+  setGistStatus(`✓ Sync — ${merged.length} journée(s)`,'ok');renderHistory();}
+
+function saveProductionDay(){
+  if(!window._lastCalc)return;
+  const{sumRows,farineMap,lev,totalPate,totalPieces}=window._lastCalc;
+  const date = selectedDate ? formatDateDisplay(selectedDate) : document.getElementById('dateBadge').textContent.trim();
+  const dateISO = selectedDate ? formatDateISO(selectedDate) : new Date().toISOString().substring(0,10);
+  const id='prod_'+Date.now();
+  // Collect comments
+  const comments={};Object.keys(RECIPES).forEach(k=>{const e=document.getElementById(`c-${k}`);if(e&&e.value.trim())comments[k]=e.value.trim();});
+  const entry={id,date,savedAt:dateISO+'T00:00:00.000Z',totalPate,totalPieces,comments,
+    levains:{llTotal:lev.T4,llSouche:lev.ll.souche,leTotal:lev.T5,leSouche:lev.le.souche,ldTotal:lev.T6,ldSouche:lev.ld.souche},
+    productions:sumRows.filter(r=>r.res.totalPate>0).map(r=>({label:r.label,pate:r.res.totalPate})),
+    matieres:Object.entries(farineMap).filter(([,v])=>v>0).map(([n,q])=>({nom:n,qty:q}))};
+  const entries=loadLocal();entries.unshift(entry);saveLocal(entries);
+  const c=gistCfg();if(c.token&&c.gistId){setGistStatus('↕ Envoi…','syncing');gistPut(entries).then(ok=>setGistStatus(ok?'✓ Synchronisé':'✗ Erreur Gist',ok?'ok':'err'));}
+  showView('tracabilite');alert(`✓ Journée "${date}" enregistrée.`);}
+
+function renderHistory(){
+  const from=document.getElementById('trac-from')?.value||'',to=document.getElementById('trac-to')?.value||'';
+  const entries=loadLocal().filter(e=>{const iso=e.savedAt?.substring(0,10)||'';return(!from||!iso||iso>=from)&&(!to||!iso||iso<=to);});
+  const list=document.getElementById('history-list'),empty=document.getElementById('history-empty');
+  if(!entries.length){list.innerHTML='';empty.style.display='block';renderCumul([]);return;}
+  empty.style.display='none';
+  list.innerHTML=entries.map(e=>`
+    <div class="hist-entry" data-id="${e.id}">
+      <div class="hist-head">
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;"><input type="checkbox" class="hist-cb" onchange="updateDeleteBtn()"><span class="hist-date">📅 ${e.date}</span></label>
+        <span class="hist-meta">${e.totalPieces} pcs · ${fmt(e.totalPate)} g pâte</span>
+        <div style="display:flex;gap:5px;"><button class="hist-toggle" onclick="toggleEntry(this)">▶ Détail</button><button class="hist-del" onclick="deleteEntry('${e.id}')">✕</button></div>
+      </div>
+      <div class="hist-detail">
+        <table class="stable" style="font-size:11px;"><thead><tr><th style="text-align:left;">Produit</th><th>Pâte (g)</th></tr></thead>
+          <tbody>${e.productions.map(p=>`<tr><td>${p.label}</td><td>${fmt(p.pate)}</td></tr>`).join('')}</tbody></table>
+        <table class="stable" style="font-size:10.5px;border-top:1px solid var(--border);"><thead><tr><th style="text-align:left;">Matière bio</th><th>Quantité (g)</th></tr></thead>
+          <tbody>${e.matieres.map(m=>`<tr><td>${m.nom}</td><td>${fmt(m.qty)}</td></tr>`).join('')}</tbody></table>
+        <div style="padding:6px 12px;background:var(--green-light);font-family:var(--mono);font-size:10px;color:var(--green);">
+          Lev. liq. blé: ${fmt(e.levains.llTotal)} g (souche ${fmt(e.levains.llSouche)} g) · Engrain: ${fmt(e.levains.leTotal)} g · Dur: ${fmt(e.levains.ldTotal)} g (souche ${fmt(e.levains.ldSouche)} g)</div>
+        ${Object.keys(e.comments||{}).length?`<div style="padding:5px 12px;font-size:10.5px;color:var(--text-muted);border-top:1px solid var(--border);">${Object.entries(e.comments).map(([k,v])=>`<strong>${RECIPE_LABELS[k]||k}:</strong> ${v}`).join(' — ')}</div>`:''}
+      </div>
+    </div>`).join('');
+  renderCumul(entries);}
+
+function toggleEntry(btn){const d=btn.closest('.hist-entry').querySelector('.hist-detail');const o=d.classList.toggle('open');btn.textContent=(o?'▼':'▶')+' Détail';}
+function renderCumul(entries){
+  const cumul={},days=new Set();
+  entries.forEach(e=>{days.add(e.id);e.matieres.forEach(m=>{cumul[m.nom]=(cumul[m.nom]||0)+m.qty;});});
+  const body=document.getElementById('cumul-body'),period=document.getElementById('cumul-period');
+  if(!body)return;
+  if(!entries.length){body.innerHTML=`<tr><td colspan="3" style="text-align:center;color:var(--text-light);padding:10px;">Aucune donnée</td></tr>`;period.textContent='—';return;}
+  period.textContent=days.size+' journée'+(days.size>1?'s':'');
+  body.innerHTML=Object.entries(cumul).sort((a,b)=>b[1]-a[1]).map(([n,q])=>`<tr><td>${n}</td><td>${fmt(q)}</td><td>${days.size}</td></tr>`).join('');}
+function clearFilter(){document.getElementById('trac-from').value='';document.getElementById('trac-to').value='';renderHistory();}
+function updateDeleteBtn(){const any=document.querySelectorAll('.hist-cb:checked').length>0;const b=document.getElementById('btn-delete-sel');if(b)b.style.display=any?'':'none';}
+function deleteEntry(id){if(!confirm('Supprimer ?'))return;const entries=loadLocal().filter(e=>e.id!==id);saveLocal(entries);const c=gistCfg();if(c.token&&c.gistId)gistPut(entries);renderHistory();}
+function deleteSelected(){const ids=[...document.querySelectorAll('.hist-cb:checked')].map(cb=>cb.closest('.hist-entry').dataset.id);if(!ids.length)return;if(!confirm(`Supprimer ${ids.length} journée(s) ?`))return;const entries=loadLocal().filter(e=>!ids.includes(e.id));saveLocal(entries);const c=gistCfg();if(c.token&&c.gistId)gistPut(entries);updateDeleteBtn();renderHistory();}
+function printHistory(){document.querySelectorAll('.hist-detail').forEach(d=>d.classList.add('open'));document.body.classList.add('print-history');window.print();document.body.classList.remove('print-history');document.querySelectorAll('.hist-detail').forEach(d=>d.classList.remove('open'));}
+
+// ---- GIST MODAL ----
+function openGistConfig(){const c=gistCfg();document.getElementById('gist-token-input').value=c.token||'';document.getElementById('gist-id-input').value=c.gistId||'';document.getElementById('gist-modal-msg').textContent='';document.getElementById('gist-modal').style.display='flex';}
+function closeGistModal(){document.getElementById('gist-modal').style.display='none';}
+async function saveGistConfig(){
+  const token=document.getElementById('gist-token-input').value.trim(),gistId=document.getElementById('gist-id-input').value.trim();
+  const msg=document.getElementById('gist-modal-msg');
+  if(!token){msg.textContent='Erreur : Token requis';msg.style.color='var(--red)';return;}
+  msg.textContent='Test en cours...';msg.style.color='var(--amber)';
+  let id=gistId;
+  if(!id){id=await gistCreate(token);if(!id){msg.textContent='Impossible de créer le Gist (token invalide ?)';msg.style.color='var(--red)';return;}msg.textContent='Gist créé : '+id;}
+  else{const t=await fetch('https://api.github.com/gists/'+id,{headers:{Authorization:'token '+token}});if(!t.ok){msg.textContent='Gist introuvable ou token invalide';msg.style.color='var(--red)';return;}msg.textContent='Connexion OK';}
+  msg.style.color='var(--green)';localStorage.setItem(GIST_CFG_KEY,JSON.stringify({token,gistId:id}));
+  setTimeout(async()=>{closeGistModal();await syncGist();},700);}
+
+// ---- DATE PICKER ----
+const JOURS      = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const JOURS_COURT= ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+let selectedDate = null;
+
+function formatDateDisplay(d){
+  return JOURS[d.getDay()]+' '+String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+}
+function formatDateISO(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function setDate(d){
+  selectedDate=d;
+  const label='Fabrication : '+formatDateDisplay(d);
+  document.getElementById('dateBadge').textContent=label;
+  document.title='Production '+formatDateDisplay(d);
+  document.querySelectorAll('.day-btn').forEach(btn=>btn.classList.toggle('selected',btn.dataset.iso===formatDateISO(d)));
+  const ci=document.getElementById('date-custom');if(ci)ci.value=formatDateISO(d);
+}
+function buildDateDropdown(){
+  const container=document.getElementById('date-days');if(!container)return;
+  const today=new Date();today.setHours(0,0,0,0);
+  container.innerHTML='';
+  for(let i=0;i<=7;i++){
+    const d=new Date(today);d.setDate(today.getDate()+i);
+    const btn=document.createElement('button');
+    btn.className='day-btn'+(i===0?' today':'');
+    btn.dataset.iso=formatDateISO(d);
+    btn.innerHTML='<div class="day-name">'+(i===0?"Auj.":JOURS_COURT[d.getDay()])+'</div><div class="day-date">'+String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'</div>';
+    btn.onclick=()=>{setDate(d);closeDatePicker();};
+    if(selectedDate&&formatDateISO(d)===formatDateISO(selectedDate))btn.classList.add('selected');
+    container.appendChild(btn);
+  }
+}
+function toggleDatePicker(){
+  const dd=document.getElementById('date-dropdown');
+  if(dd.classList.contains('open')){closeDatePicker();return;}
+  buildDateDropdown();dd.classList.add('open');
+}
+function closeDatePicker(){document.getElementById('date-dropdown')?.classList.remove('open');}
+function setCustomDate(v){
+  if(!v)return;
+  const [y,m,da]=v.split('-').map(Number);
+  setDate(new Date(y,m-1,da));
+  buildDateDropdown();
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.date-picker'))closeDatePicker();});
+
+// ---- INIT ----
+(function init(){
+  // Date de fabrication par défaut = demain (J+1)
+  const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);tomorrow.setHours(0,0,0,0);
+  setDate(tomorrow);
+
+  const y=tomorrow.getFullYear(),m=String(tomorrow.getMonth()+1).padStart(2,'0');
+  const fe=document.getElementById('trac-from'),te=document.getElementById('trac-to');
+  if(fe)fe.value=y+'-'+m+'-01';
+  if(te)te.value=y+'-'+m+'-'+String(new Date(y,tomorrow.getMonth()+1,0).getDate()).padStart(2,'0');
+  const c=gistCfg();
+  if(c.token&&c.gistId)setGistStatus('Gist: '+c.gistId.substring(0,10)+'...','ok');
+  document.getElementById('tab-production').classList.add('active');
+})();
+
+
+window.addEventListener('scroll',function(){
+  var links=document.querySelectorAll('.sidebar a');
+  var cur='';
+  document.querySelectorAll('[id]').forEach(function(el){if(el.getBoundingClientRect().top<100)cur='#'+el.id;});
+  links.forEach(function(l){l.classList.toggle('active',l.getAttribute('href')===cur);});
+},{passive:true});
+
+recalc();
+</script>
+</body>
+</html>
