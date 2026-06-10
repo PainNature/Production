@@ -1,10 +1,12 @@
-<index.html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Planification Production — Boulangerie</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 /* ============================================================
    DESIGN SYSTEM — Optimisé impression N&B + lecture rapide
@@ -12,7 +14,7 @@
 :root {
   --bg:#f0ede8; --surface:#fff; --surface2:#f7f5f2;
   --border:#d8d3cc; --border-strong:#b8b0a6;
-  --text:#111; --text-muted:#555; --text-light:#999;
+  --text:#000; --text-muted:#333; --text-light:#666;
   --wheat:#6b3a1f; --wheat-light:#f0e6dc; --wheat-mid:#a0622a;
   --green:#1a5c38; --green-light:#e0f0e8;
   --blue:#163d6a; --blue-light:#deeaf7;
@@ -22,7 +24,7 @@
   --r:4px; --r-lg:7px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13px;line-height:1.45;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;}
 
 /* ---- DATE PICKER ---- */
 .date-picker{position:relative;}
@@ -51,92 +53,92 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 /* ---- LAYOUT ---- */
 .layout{display:flex;min-height:calc(100vh - 50px);}
 .sidebar{width:200px;background:var(--surface);border-right:2px solid var(--border);padding:8px 0;position:sticky;top:50px;height:calc(100vh - 50px);overflow-y:auto;flex-shrink:0;}
-.sbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-light);padding:10px 12px 3px;font-family:var(--mono);font-weight:500;}
-.sidebar a{display:block;padding:5px 12px;font-size:12px;color:var(--text-muted);text-decoration:none;border-left:3px solid transparent;}
+.sbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#555;padding:10px 12px 3px;font-family:var(--mono);font-weight:800;}
+.sidebar a{display:block;padding:6px 12px;font-size:13px;font-weight:500;color:#333;text-decoration:none;border-left:3px solid transparent;}
 .sidebar a:hover{color:var(--wheat);background:var(--wheat-light);border-left-color:var(--wheat-mid);}
-.sidebar a.active{color:var(--wheat);background:var(--wheat-light);border-left-color:var(--wheat);font-weight:700;}
+.sidebar a.active{color:var(--wheat);background:var(--wheat-light);border-left-color:var(--wheat);font-weight:800;}
 .main{flex:1;padding:1rem 1.25rem;max-width:1040px;}
 
 /* ---- QUICK TOTALS ---- */
 .qtotals{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:1rem;}
 .qtot{background:var(--surface);border:2px solid var(--border);border-radius:var(--r-lg);padding:.6rem .75rem;text-align:center;}
-.qtot .ql{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-light);margin-bottom:1px;}
-.qtot .qv{font-family:var(--mono);font-size:19px;font-weight:700;color:var(--wheat);}
-.qtot .qu{font-size:9px;color:var(--text-muted);font-family:var(--mono);}
+.qtot .ql{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:1px;}
+.qtot .qv{font-family:var(--mono);font-size:20px;font-weight:800;color:var(--wheat);}
+.qtot .qu{font-size:9px;color:#555;font-family:var(--mono);font-weight:600;}
 
 /* ---- LEVAINS ---- */
 .levains-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin-bottom:1rem;}
 .levain-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--r-lg);overflow:hidden;}
-.levain-head{padding:6px 12px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between;}
+.levain-head{padding:7px 12px;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:space-between;}
 .lh-liq{background:var(--blue-light);color:var(--blue);border-bottom:2px solid #b0ccec;}
 .lh-eng{background:var(--amber-light);color:var(--amber);border-bottom:2px solid #d8c070;}
 .lh-dur{background:var(--green-light);color:var(--green);border-bottom:2px solid #90c8a8;}
-.lh-total{font-family:var(--mono);font-size:13px;font-weight:700;}
+.lh-total{font-family:var(--mono);font-size:14px;font-weight:800;}
 .levain-rows{padding:4px 0;}
-.levain-row{display:flex;align-items:center;justify-content:space-between;padding:3px 12px;font-size:12px;}
-.lr-name{color:var(--text-muted);}
-.lr-val{font-family:var(--mono);font-weight:600;color:var(--text);}
-.lr-souche .lr-val{color:var(--red);font-weight:700;}
+.levain-row{display:flex;align-items:center;justify-content:space-between;padding:4px 12px;font-size:13px;}
+.lr-name{color:#333;font-weight:600;}
+.lr-val{font-family:var(--mono);font-weight:700;color:#000;}
+.lr-souche .lr-val{color:var(--red);font-weight:800;font-size:14px;}
 
 /* ---- SEC TITLE ---- */
-.sec-title{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-light);margin:1rem 0 .5rem;padding-bottom:4px;border-bottom:2px solid var(--border-strong);}
+.sec-title{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);font-weight:700;margin:1rem 0 .5rem;padding-bottom:4px;border-bottom:2px solid var(--border-strong);}
 
 /* ---- RECIPE CARD ---- */
 .rcard{background:var(--surface);border:2px solid var(--border-strong);border-radius:var(--r-lg);margin-bottom:.75rem;overflow:hidden;}
-.rhead{padding:7px 12px;background:var(--wheat-light);border-bottom:2px solid var(--border-strong);display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;flex-wrap:wrap;}
-.rname{font-size:13px;font-weight:700;color:var(--wheat);min-width:140px;}
-.rpoids{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--wheat-mid);background:rgba(0,0,0,.06);border-radius:var(--r);padding:1px 6px;white-space:nowrap;}
+.rhead{padding:8px 12px;background:var(--wheat-light);border-bottom:2px solid var(--border-strong);display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;flex-wrap:wrap;}
+.rname{font-size:15px;font-weight:800;color:var(--wheat);min-width:140px;}
+.rpoids{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--wheat-mid);background:rgba(0,0,0,.08);border-radius:var(--r);padding:2px 7px;white-space:nowrap;}
 .rcontrols{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .cg{display:flex;align-items:center;gap:4px;}
-.cg label{font-size:10px;color:var(--text-muted);font-family:var(--mono);white-space:nowrap;font-weight:500;}
-.cg input[type=number]{width:58px;padding:3px 6px;border:2px solid var(--border-strong);border-radius:var(--r);font-family:var(--mono);font-size:13px;font-weight:700;color:var(--wheat);background:#fff;text-align:center;}
+.cg label{font-size:11px;color:var(--text-muted);font-family:var(--mono);white-space:nowrap;font-weight:700;}
+.cg input[type=number]{width:58px;padding:3px 6px;border:2px solid var(--border-strong);border-radius:var(--r);font-family:var(--mono);font-size:14px;font-weight:700;color:var(--wheat);background:#fff;text-align:center;}
 .cg input[type=number]:focus{outline:none;border-color:var(--wheat);box-shadow:0 0 0 2px rgba(107,58,31,.15);}
 .sportif-cg{border-left:2px solid var(--border-strong);padding-left:8px;margin-left:2px;}
 .sportif-cg label{color:var(--green)!important;}
 .sportif-cg input{color:var(--green)!important;border-color:var(--green)!important;}
 
 /* ---- META ROW ---- */
-.rmeta{padding:4px 12px;background:#fafaf8;border-bottom:1px solid var(--border);display:flex;gap:1rem;flex-wrap:wrap;font-size:10.5px;font-family:var(--mono);}
-.mi .mk{color:var(--text-light);}
-.mi .mv{color:var(--text);font-weight:600;}
-.mi .mv.ok{color:var(--green);}
-.mi .mv.warn{color:var(--amber);font-weight:700;}
+.rmeta{padding:5px 12px;background:#f5f3ef;border-bottom:1px solid var(--border);display:flex;gap:1rem;flex-wrap:wrap;font-size:11px;font-family:var(--mono);}
+.mi .mk{color:var(--text-light);font-weight:600;}
+.mi .mv{color:var(--text);font-weight:700;}
+.mi .mv.ok{color:var(--green);font-weight:800;}
+.mi .mv.warn{color:var(--amber);font-weight:800;}
 
 /* ---- COMMENT ZONE ---- */
 .rcomment{padding:4px 12px;border-bottom:1px solid var(--border);background:#fffef8;}
-.rcomment textarea{width:100%;border:1px dashed var(--border-strong);border-radius:var(--r);background:transparent;font-family:var(--font);font-size:11px;color:var(--text-muted);resize:none;padding:3px 6px;line-height:1.4;}
+.rcomment textarea{width:100%;border:1px dashed var(--border-strong);border-radius:var(--r);background:transparent;font-family:var(--font);font-size:12px;color:var(--text-muted);resize:none;padding:3px 6px;line-height:1.4;}
 .rcomment textarea:focus{outline:none;border-color:var(--amber);background:#fff;}
-.rcomment textarea::placeholder{color:#ccc;font-style:italic;}
+.rcomment textarea::placeholder{color:#bbb;font-style:italic;}
 
 /* ---- INGREDIENT TABLE ---- */
-.itable{width:100%;border-collapse:collapse;font-size:12px;}
-.itable th{font-family:var(--mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;padding:5px 12px;border-bottom:2px solid var(--border-strong);font-weight:600;}
-.itable th:first-child{text-align:left;background:#e0dbd4;color:var(--text-muted);}
-.itable th:nth-child(2){text-align:right;background:#e0dbd4;color:var(--text-light);}
+.itable{width:100%;border-collapse:collapse;font-size:13px;}
+.itable th{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;padding:5px 12px;border-bottom:2px solid var(--border-strong);font-weight:700;}
+.itable th:first-child{text-align:left;background:#d8d3cc;color:#000;}
+.itable th:nth-child(2){text-align:right;background:#d8d3cc;color:#333;}
 .itable th:nth-child(3){text-align:right;background:#1a1714;color:#fff;}
-.itable tr:nth-child(even){background:#fafaf8;}
+.itable tr:nth-child(even){background:#f5f3f0;}
 .itable td{padding:5px 12px;border-bottom:1px solid var(--border);}
-.itable .td-name{font-weight:500;color:var(--text);text-align:left;}
-.itable .td-base{text-align:right;font-family:var(--mono);font-size:11.5px;color:var(--text-light);background:#f5f3f0;}
-.itable .td-jour{text-align:right;font-family:var(--mono);font-size:13px;background:#fff;}
-.itable .td-jour strong{color:#111;font-weight:700;}
-.itable .no-prod{color:var(--text-light);font-size:11px;}
-.itable .tr-total td{border-top:2px solid var(--border-strong);background:#e0dbd4;font-weight:700;}
-.itable .tr-total .td-name{font-size:9.5px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);}
-.itable .tr-total .td-base{background:#e0dbd4;color:var(--text-muted);}
-.itable .tr-total .td-jour{background:#e0dbd4;font-size:14px;}
+.itable .td-name{font-weight:600;color:#000;text-align:left;}
+.itable .td-base{text-align:right;font-family:var(--mono);font-size:12px;color:#444;background:#eeebe6;}
+.itable .td-jour{text-align:right;font-family:var(--mono);font-size:14px;background:#fff;}
+.itable .td-jour strong{color:#000;font-weight:800;}
+.itable .no-prod{color:#888;font-size:12px;}
+.itable .tr-total td{border-top:2px solid var(--border-strong);background:#d8d3cc;font-weight:800;}
+.itable .tr-total .td-name{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;color:#333;}
+.itable .tr-total .td-base{background:#d8d3cc;color:#444;}
+.itable .tr-total .td-jour{background:#d8d3cc;font-size:15px;}
 .itable .tr-total .td-jour strong{color:var(--wheat);}
-.itable .empois-header td{background:var(--amber-light);color:var(--amber);font-size:9px;font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;padding:3px 12px;}
+.itable .empois-header td{background:var(--amber-light);color:var(--amber);font-size:9px;font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;padding:3px 12px;font-weight:700;}
 .itable .row-empois{background:var(--amber-light);}
 .itable .row-empois .td-name{color:var(--amber);padding-left:22px;font-style:italic;}
 .itable .row-empois .td-base{background:var(--amber-light);}
 .itable .row-empois .td-jour{background:var(--amber-light);}
 .itable .row-empois-fini{border-top:1px dashed var(--border-strong);}
 .itable .row-sportif td{background:var(--green-light);}
-.itable .row-sportif .td-name{color:var(--green);font-weight:700;}
+.itable .row-sportif .td-name{color:var(--green);font-weight:800;}
 .itable .row-sportif .td-jour strong{color:var(--green);}
 .itable .row-cran td{background:var(--red-light);}
-.itable .row-cran .td-name{color:var(--red);font-weight:700;}
+.itable .row-cran .td-name{color:var(--red);font-weight:800;}
 .itable .row-cran .td-jour strong{color:var(--red);}
 
 /* ---- SUMMARY ---- */
@@ -153,6 +155,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 .stable .gt.green td{background:var(--green-light);color:var(--green);}
 .synth-block{display:none;}
 .synth-block.visible{display:block;}
+
+/* ---- PRINT CHECKBOX ---- */
+.print-cb-wrap{display:flex;align-items:center;gap:5px;margin-left:auto;padding-left:10px;}
+.print-cb-wrap input[type=checkbox]{width:17px;height:17px;accent-color:var(--wheat);cursor:pointer;}
+.print-cb-wrap label{font-family:var(--mono);font-size:9px;color:var(--text-light);font-weight:600;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;white-space:nowrap;}
+/* carte décochée : grisée à l'écran */
+.rcard.print-off{opacity:.45;}
+.rcard.print-off .rhead{background:#eee;}
+/* cases cochées — masquées à l'impression par le bloc ci-dessous */
 
 /* ---- TRACABILITE ---- */
 .trac-toolbar{background:var(--surface);border:2px solid var(--border);border-radius:var(--r-lg);padding:10px 12px;margin-bottom:.75rem;}
@@ -176,38 +187,140 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 .hist-detail.open{display:block;}
 .hist-cb{accent-color:var(--wheat);}
 
-/* ---- PRINT ---- */
-@media print{
-  @page{size:A4;margin:9mm 11mm;}
-  body{background:#fff;font-size:10px;}
-  .topbar,.sidebar,.qtotals,.no-print,.trac-toolbar,.btn-tab,.btn-gist{display:none!important;}
-  .layout{display:block;}
-  .main{padding:0;max-width:none;}
-  .rcard{break-inside:avoid;border:1.5px solid #888;margin-bottom:5px;border-radius:0;}
-  .levains-grid{display:grid;grid-template-columns:repeat(3,1fr);}
-  .levain-card{border:1.5px solid #888;border-radius:0;}
-  .rhead{background:#e8e0d8!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:4px 10px;}
-  .rname{font-size:11px;color:#000;}
-  .itable td,.itable th,.stable td,.stable th{padding:2.5px 10px;font-size:9px;}
-  .itable th:nth-child(3){background:#333!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .itable .td-base{background:#f0f0f0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .itable .td-jour{background:#fff!important;}
-  .itable .tr-total td{background:#ddd!important;}
-  .rmeta{padding:2px 10px;font-size:9px;}
-  .rcomment{padding:2px 10px;}
-  .rcomment textarea{border:none;background:transparent;font-size:9px;color:#444;resize:none;height:auto;}
-  .sec-title{margin:5px 0 3px;font-size:8px;border-bottom:1.5px solid #888;}
-  .synth-block{display:none!important;}
-  body.print-synth .synth-block{display:block!important;}
-  body.print-history .tracabilite-view{display:block!important;}
-  body.print-history .main:not(.tracabilite-view){display:none!important;}
-  body.print-history .trac-toolbar,.no-print{display:none!important;}
-  body.print-history .hist-detail{display:block!important;}
-  /* N&B : force noir pur sur blanc */
-  .lh-liq,.lh-eng,.lh-dur,.rhead,.sum-head,.hist-head{background:#e0e0e0!important;color:#000!important;}
-  .itable .tr-total td,.stable .gt td{background:#e0e0e0!important;color:#000!important;}
-  .itable .qv-main{color:#000!important;}
-  .levain-card,.sum-card,.hist-entry{border:1.5px solid #666;}
+/* à l'impression : masquer les cartes décochées */
+
+/* ============================================================
+   PRINT — Brother HL-L2375DW — 4 pages A4 — laser N&B
+   Zone utile : 200×287mm | marge @page : 5mm
+   Cible : ~8mm/ligne ingrédient | police 10-11px
+   Sauts de page forcés : après rustique, après sarrasin
+   ============================================================ */
+@media print {
+  @page { size:A4; margin:5mm; }
+
+  /* Reset global */
+  body { background:#fff !important; font-size:11px; line-height:1.4; color:#000; }
+  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+
+  /* Masquer le chrome et éléments non imprimables */
+  .topbar, .sidebar, .qtotals, .no-print,
+  .trac-toolbar, .btn-tab, .btn-gist,
+  .rcomment, .print-cb-wrap, #print-select-bar { display:none !important; }
+
+  /* Masquer les recettes décochées */
+  .rcard.print-off { display:none !important; }
+
+  /* Layout */
+  .layout { display:block; }
+  .main   { padding:0; max-width:none; }
+
+  /* ---- Sauts de page entre sections ---- */
+  /* Page 1 : Levains + Baguettes */
+  /* Page 2 : Pains spéciaux (Nieulais→Sarrasin) */
+  /* Page 3 : Pains spéciaux suite + Viennoiserie */
+  /* Page 4 : débordement éventuel */
+  #rustique { break-after:page; page-break-after:always; }
+  #engrain  { break-after:page; page-break-after:always; }
+
+  /* Chaque carte reste groupée */
+  .rcard { break-inside:avoid; page-break-inside:avoid;
+           border:1.5px solid #000; border-radius:0; margin-bottom:4px; }
+
+  /* ---- En-tête recette : fond noir, texte blanc ---- */
+  .rhead  { background:#000 !important; color:#fff !important;
+            padding:4px 8px; border-bottom:none; flex-wrap:nowrap; }
+  .rname  { font-size:12px; font-weight:800; color:#fff !important; }
+  .rpoids { font-size:10px; font-weight:700;
+            color:#ccc !important; background:rgba(255,255,255,.15);
+            padding:1px 5px; }
+  .cg label { font-size:9px; color:#bbb !important; font-weight:600; }
+  .cg input[type=number] { font-size:12px; font-weight:800; color:#fff !important;
+                            background:transparent !important;
+                            border:1px solid rgba(255,255,255,.5);
+                            width:48px; padding:1px 4px; text-align:center; }
+
+  /* ---- Meta ligne : fond gris clair ---- */
+  .rmeta  { padding:3px 8px; background:#e8e8e8 !important;
+            border-bottom:1.5px solid #888; font-size:9.5px; gap:.5rem; }
+  .mi .mk { color:#444 !important; font-weight:700; }
+  .mi .mv { color:#000 !important; font-weight:800; }
+  .mi .mv.ok, .mi .mv.warn { color:#000 !important; }
+
+  /* ---- Tableau ingrédients ---- */
+  /* En-têtes colonnes */
+  .itable { font-size:10.5px; }
+  .itable th { padding:3px 8px; font-size:9.5px; font-weight:800;
+               letter-spacing:.04em; border-bottom:2px solid #000; }
+  .itable th:first-child  { text-align:left;  background:#d0d0d0 !important; color:#000; }
+  .itable th:nth-child(2) { text-align:right; background:#d0d0d0 !important; color:#333; }
+  .itable th:nth-child(3) { text-align:right; background:#000 !important;    color:#fff; }
+
+  /* Lignes : padding 4px → ~8mm par ligne avec le texte 11px */
+  .itable td { padding:4px 8px; border-bottom:1px solid #ccc; }
+  .itable tr:nth-child(even) { background:#f2f2f2 !important; }
+  .itable .td-name  { font-size:11px; font-weight:700; color:#000 !important; }
+  .itable .td-base  { font-size:10px; color:#444 !important;
+                      background:#e5e5e5 !important; font-weight:600; }
+  .itable .td-jour  { font-size:13px; background:#fff !important; }
+  .itable .td-jour strong { color:#000 !important; font-weight:800; }
+  .itable .no-prod  { font-size:9px; color:#999 !important; }
+
+  /* Ligne total : fond noir inversé comme en-tête */
+  .itable .tr-total td { border-top:2px solid #000; }
+  .itable .tr-total .td-name { background:#000 !important; color:#fff !important;
+                                font-size:9px; font-weight:800;
+                                text-transform:uppercase; letter-spacing:.05em; }
+  .itable .tr-total .td-base { background:#d0d0d0 !important; color:#333 !important;
+                                font-size:10px; font-weight:700; }
+  .itable .tr-total .td-jour { background:#000 !important; }
+  .itable .tr-total .td-jour strong { color:#fff !important; font-size:14px; font-weight:800; }
+
+  /* Lignes spéciales */
+  .itable .row-empois td       { background:#e8e8e8 !important; }
+  .itable .row-empois .td-name { font-style:italic; color:#333 !important; }
+  .itable .row-sportif td      { background:#e0e0e0 !important; border-top:1px solid #888; border-bottom:1px solid #888; }
+  .itable .row-sportif .td-name { font-weight:800; color:#000 !important; }
+  .itable .row-cran td         { background:#e0e0e0 !important; border-top:1px solid #888; border-bottom:1px solid #888; }
+  .itable .row-cran .td-name   { font-weight:800; color:#000 !important; }
+
+  /* ---- Levains en haut de page 1 : 3 colonnes ---- */
+  .levains-grid { display:grid !important; grid-template-columns:repeat(3,1fr);
+                  gap:4px; margin-bottom:5px; break-inside:avoid; }
+  .levain-card  { border:1.5px solid #000; border-radius:0; }
+  .levain-head  { padding:4px 8px; font-size:11px; font-weight:800; }
+  .lh-liq, .lh-eng, .lh-dur { background:#000 !important; color:#fff !important;
+                                 border-bottom:2px solid #000; }
+  .lh-total     { font-size:13px; font-weight:800; }
+  .levain-row   { padding:3px 8px; font-size:10.5px; }
+  .lr-name      { color:#333 !important; font-weight:700; }
+  .lr-val       { font-size:11px; font-weight:700; color:#000 !important; }
+  .lr-souche .lr-val { font-size:13px; font-weight:800; }
+
+  /* ---- Titres de section ---- */
+  .sec-title { margin:5px 0 3px; font-size:9px; font-weight:800;
+               letter-spacing:.1em; color:#000 !important;
+               border-bottom:2px solid #000; padding-bottom:2px; }
+
+  /* ---- Synthèses (masquées par défaut) ---- */
+  .synth-block { display:none !important; }
+  body.print-synth .synth-block { display:block !important; }
+  .sum-card { break-inside:avoid; border:1.5px solid #000;
+              border-radius:0; margin-bottom:4px; }
+  .sum-head { padding:4px 8px; font-size:11px; font-weight:800;
+              background:#000 !important; color:#fff !important; }
+  .stable th { padding:3px 8px; font-size:9.5px; font-weight:800; background:#d0d0d0 !important; }
+  .stable td { padding:4px 8px; font-size:10.5px; }
+  .stable .gt td { background:#000 !important; color:#fff !important;
+                   font-weight:800; border-top:2px solid #000; }
+
+  /* ---- Traçabilité ---- */
+  body.print-history .tracabilite-view { display:block !important; }
+  body.print-history .main:not(.tracabilite-view) { display:none !important; }
+  body.print-history .hist-detail { display:block !important; }
+  .hist-entry { border:1.5px solid #000; margin-bottom:4px;
+                break-inside:avoid; border-radius:0; }
+  .hist-head  { padding:4px 8px; background:#000 !important; color:#fff !important; }
+  .hist-date  { font-size:11px; font-weight:800; color:#fff !important; }
 }
 @media(max-width:620px){.sidebar{display:none;}.main{padding:.75rem;}.qtotals{grid-template-columns:repeat(2,1fr);}.rhead{flex-direction:column;}}
 </style>
@@ -233,6 +346,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
     <button class="btn-tab" id="tab-production" onclick="showView('production')">📋 Production</button>
     <button class="btn-tab" id="tab-tracabilite" onclick="showView('tracabilite')">🌿 Traçabilité</button>
     <button class="btn-tab no-print" onclick="printCurrent()">⎙ Imprimer</button>
+    <button class="btn-tab no-print" onclick="exportPDF()" id="btn-pdf" title="Exporter en PDF">⬇ PDF</button>
     <button class="btn-gist no-print" onclick="openGistConfig()" title="Cloud Gist">☁</button>
   </div>
 </div>
@@ -277,6 +391,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
     <div class="qtot"><div class="ql">Pièces</div><div class="qv" id="qt-pieces">—</div><div class="qu">unités</div></div>
   </div>
 
+  <!-- PRINT SELECTION BAR -->
+  <div class="no-print" id="print-select-bar" style="display:flex;align-items:center;gap:10px;margin-bottom:.75rem;padding:6px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);font-family:var(--mono);font-size:11px;color:var(--text-muted);">
+    <span style="font-weight:700;color:var(--text-muted);">🖨 Impression :</span>
+    <button onclick="setAllPrint(true)"  style="padding:3px 10px;border:1px solid var(--border-strong);border-radius:var(--r);background:#fff;cursor:pointer;font-size:11px;font-family:var(--mono);">✓ Tout cocher</button>
+    <button onclick="setAllPrint(false)" style="padding:3px 10px;border:1px solid var(--border-strong);border-radius:var(--r);background:#fff;cursor:pointer;font-size:11px;font-family:var(--mono);">✗ Tout décocher</button>
+    <span id="print-count" style="margin-left:auto;color:var(--text-light);font-size:10px;"></span>
+  </div>
+
   <!-- LEVAINS -->
   <div class="sec-title" id="levains">Levains à préparer — souche = 30 %</div>
   <div class="levains-grid">
@@ -319,6 +441,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
       <div class="rcontrols">
         <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-trad" value="160" onchange="recalc()"></div>
       </div>
+      <div class="print-cb-wrap"><input type="checkbox" id="pcb-trad" checked onchange="togglePrintCard('trad',this.checked)"><label for="pcb-trad">Imprimer</label></div>
     </div>
     <div class="rmeta">
       <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-trad-coef">—</span></span>
@@ -337,6 +460,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
       <div class="rcontrols">
         <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-gresto" value="2" onchange="recalc()"></div>
       </div>
+      <div class="print-cb-wrap"><input type="checkbox" id="pcb-gresto" checked onchange="togglePrintCard('gresto',this.checked)"><label for="pcb-gresto">Imprimer</label></div>
     </div>
     <div class="rmeta">
       <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-gresto-coef">—</span></span>
@@ -354,6 +478,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
       <div class="rcontrols">
         <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-bgraines" value="20" onchange="recalc()"></div>
       </div>
+      <div class="print-cb-wrap"><input type="checkbox" id="pcb-bgraines" checked onchange="togglePrintCard('bgraines',this.checked)"><label for="pcb-bgraines">Imprimer</label></div>
     </div>
     <div class="rmeta">
       <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-bgraines-coef">—</span></span>
@@ -371,6 +496,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
       <div class="rcontrols">
         <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-mais" value="20" onchange="recalc()"></div>
       </div>
+      <div class="print-cb-wrap"><input type="checkbox" id="pcb-mais" checked onchange="togglePrintCard('mais',this.checked)"><label for="pcb-mais">Imprimer</label></div>
     </div>
     <div class="rmeta">
       <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-mais-coef">—</span></span>
@@ -388,6 +514,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
       <div class="rcontrols">
         <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-rustique" value="30" onchange="recalc()"></div>
       </div>
+      <div class="print-cb-wrap"><input type="checkbox" id="pcb-rustique" checked onchange="togglePrintCard('rustique',this.checked)"><label for="pcb-rustique">Imprimer</label></div>
     </div>
     <div class="rmeta">
       <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-rustique-coef">—</span></span>
@@ -414,6 +541,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
           <label>🏃 Sportif :</label><input type="number" min="0" id="q-nieulais-sportif" value="0" onchange="recalc()">
         </div>
       </div>
+      <div class="print-cb-wrap"><input type="checkbox" id="pcb-nieulais" checked onchange="togglePrintCard('nieulais',this.checked)"><label for="pcb-nieulais">Imprimer</label></div>
     </div>
     <div class="rmeta">
       <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-nieulais-coef">—</span></span>
@@ -435,6 +563,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
         <div class="cg"><label>1 300 g :</label><input type="number" min="0" id="q-galet-1300" value="21" onchange="recalc()"></div>
         <div class="cg"><label>2 500 g :</label><input type="number" min="0" id="q-galet-2500" value="0" onchange="recalc()"></div>
       </div>
+      <div class="print-cb-wrap"><input type="checkbox" id="pcb-galet" checked onchange="togglePrintCard('galet',this.checked)"><label for="pcb-galet">Imprimer</label></div>
     </div>
     <div class="rmeta">
       <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-galet-coef">—</span></span>
@@ -454,6 +583,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
         <div class="cg"><label>650 g :</label><input type="number" min="0" id="q-odette-650" value="0" onchange="recalc()"></div>
         <div class="cg"><label>1 300 g :</label><input type="number" min="0" id="q-odette-1300" value="18" onchange="recalc()"></div>
       </div>
+      <div class="print-cb-wrap"><input type="checkbox" id="pcb-odette" checked onchange="togglePrintCard('odette',this.checked)"><label for="pcb-odette">Imprimer</label></div>
     </div>
     <div class="rmeta">
       <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-odette-coef">—</span></span>
@@ -474,6 +604,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
         <div class="cg"><label>650 g :</label><input type="number" min="0" id="q-odgraines-650" value="0" onchange="recalc()"></div>
         <div class="cg"><label>1 300 g :</label><input type="number" min="0" id="q-odgraines-1300" value="8" onchange="recalc()"></div>
       </div>
+      <div class="print-cb-wrap"><input type="checkbox" id="pcb-odgraines" checked onchange="togglePrintCard('odgraines',this.checked)"><label for="pcb-odgraines">Imprimer</label></div>
     </div>
     <div class="rmeta">
       <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-odgraines-coef">—</span></span>
@@ -497,6 +628,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
           <span style="font-family:var(--mono);font-size:10px;color:var(--text-muted);">× 1 100 g</span>
         </div>
       </div>
+      <div class="print-cb-wrap"><input type="checkbox" id="pcb-seigle" checked onchange="togglePrintCard('seigle',this.checked)"><label for="pcb-seigle">Imprimer</label></div>
     </div>
     <div class="rmeta">
       <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-seigle-coef">—</span></span>
@@ -516,6 +648,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
       <div class="rcontrols">
         <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-sarrasin" value="2" onchange="recalc()"></div>
       </div>
+      <div class="print-cb-wrap"><input type="checkbox" id="pcb-sarrasin" checked onchange="togglePrintCard('sarrasin',this.checked)"><label for="pcb-sarrasin">Imprimer</label></div>
     </div>
     <div class="rmeta">
       <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-sarrasin-coef">—</span></span>
@@ -534,6 +667,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
       <div class="rcontrols">
         <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-epeautre" value="0" onchange="recalc()"></div>
       </div>
+      <div class="print-cb-wrap"><input type="checkbox" id="pcb-epeautre" checked onchange="togglePrintCard('epeautre',this.checked)"><label for="pcb-epeautre">Imprimer</label></div>
     </div>
     <div class="rmeta">
       <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-epeautre-coef">—</span></span>
@@ -552,6 +686,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
       <div class="rcontrols">
         <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-engrain" value="8" onchange="recalc()"></div>
       </div>
+      <div class="print-cb-wrap"><input type="checkbox" id="pcb-engrain" checked onchange="togglePrintCard('engrain',this.checked)"><label for="pcb-engrain">Imprimer</label></div>
     </div>
     <div class="rmeta">
       <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-engrain-coef">—</span></span>
@@ -573,6 +708,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
       <div class="rcontrols">
         <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-brioche" value="20" onchange="recalc()"></div>
       </div>
+      <div class="print-cb-wrap"><input type="checkbox" id="pcb-brioche" checked onchange="togglePrintCard('brioche',this.checked)"><label for="pcb-brioche">Imprimer</label></div>
     </div>
     <div class="rmeta">
       <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-brioche-coef">—</span></span>
@@ -590,6 +726,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
       <div class="rcontrols">
         <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-mie" value="8" onchange="recalc()"></div>
       </div>
+      <div class="print-cb-wrap"><input type="checkbox" id="pcb-mie" checked onchange="togglePrintCard('mie',this.checked)"><label for="pcb-mie">Imprimer</label></div>
     </div>
     <div class="rmeta">
       <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-mie-coef">—</span></span>
@@ -607,6 +744,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
       <div class="rcontrols">
         <div class="cg"><label>Nb pièces :</label><input type="number" min="0" id="q-cacao" value="0" onchange="recalc()"></div>
       </div>
+      <div class="print-cb-wrap"><input type="checkbox" id="pcb-cacao" checked onchange="togglePrintCard('cacao',this.checked)"><label for="pcb-cacao">Imprimer</label></div>
     </div>
     <div class="rmeta">
       <span class="mi"><span class="mk">Coef </span><span class="mv" id="m-cacao-coef">—</span></span>
@@ -1145,7 +1283,154 @@ window.addEventListener('scroll',function(){
   links.forEach(function(l){l.classList.toggle('active',l.getAttribute('href')===cur);});
 },{passive:true});
 
+// ---- EXPORT PDF ----
+async function exportPDF() {
+  const btn = document.getElementById('btn-pdf');
+  const isTrac = document.getElementById('tracabilite-view').style.display !== 'none';
+
+  // Ask what to include
+  let includeRecipes = true;
+  let includeSynth = false;
+  let includeTrac = false;
+
+  if (isTrac) {
+    includeTrac = true;
+    includeRecipes = false;
+  } else {
+    const choice = confirm(
+      'Contenu du PDF :\n\n' +
+      'OK     = Fiches recettes + levains\n' +
+      'Annuler = Synthèses (matières + production)'
+    );
+    includeRecipes = choice;
+    includeSynth = !choice;
+  }
+
+  // Show what needs to be visible
+  if (includeSynth) {
+    document.querySelectorAll('.synth-block').forEach(e => e.classList.add('visible'));
+  }
+
+  btn.textContent = '⏳ PDF…';
+  btn.disabled = true;
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageW = 210, pageH = 297, margin = 10;
+  const contentW = pageW - margin * 2;
+
+  // Build list of elements to capture
+  let elements = [];
+  if (isTrac || includeTrac) {
+    // Traçabilité : ouvrir tous les détails temporairement
+    document.querySelectorAll('.hist-detail').forEach(d => d.classList.add('open'));
+    elements = [...document.querySelectorAll('#tracabilite-view .sum-card, #tracabilite-view .hist-entry')];
+  } else if (includeSynth) {
+    elements = [...document.querySelectorAll('.synth-block')];
+  } else {
+    // Recettes + levains
+    elements = [
+      document.querySelector('.levains-grid'),
+      ...document.querySelectorAll('.rcard')
+    ].filter(Boolean);
+  }
+
+  // Date label for filename
+  const dateLabel = selectedDate ? formatDateISO(selectedDate) : new Date().toISOString().substring(0,10);
+  const filename = `production_${dateLabel}.pdf`;
+
+  let currentY = margin;
+  let isFirstPage = true;
+
+  // Add header on first page
+  pdf.setFillColor(107, 58, 31);
+  pdf.rect(margin, margin, contentW, 10, 'F');
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'bold');
+  const dateStr = selectedDate ? formatDateDisplay(selectedDate) : '';
+  pdf.text('Planification Production — ' + dateStr, margin + 3, margin + 7);
+  currentY = margin + 14;
+
+  for (let i = 0; i < elements.length; i++) {
+    const el = elements[i];
+    if (!el || el.offsetHeight === 0) continue;
+
+    try {
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        width: el.scrollWidth,
+        height: el.scrollHeight,
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const imgW = contentW;
+      const imgH = (canvas.height * imgW) / canvas.width;
+
+      // Page break if needed
+      if (!isFirstPage && currentY + imgH > pageH - margin) {
+        pdf.addPage();
+        currentY = margin;
+      }
+      if (currentY + imgH > pageH - margin && isFirstPage) {
+        pdf.addPage();
+        currentY = margin;
+        isFirstPage = false;
+      }
+
+      pdf.addImage(imgData, 'PNG', margin, currentY, imgW, imgH);
+      currentY += imgH + 3;
+      isFirstPage = false;
+    } catch(e) {
+      console.warn('html2canvas error on element', e);
+    }
+  }
+
+  pdf.save(filename);
+
+  // Cleanup
+  btn.textContent = '⬇ PDF';
+  btn.disabled = false;
+  if (includeSynth) {
+    document.querySelectorAll('.synth-block').forEach(e => e.classList.remove('visible'));
+  }
+  if (isTrac || includeTrac) {
+    document.querySelectorAll('.hist-detail').forEach(d => d.classList.remove('open'));
+  }
+}
+
+// ---- PRINT SELECTION ----
+function togglePrintCard(key, checked) {
+  const card = document.getElementById(key);
+  if (card) card.classList.toggle('print-off', !checked);
+  updatePrintCount();
+}
+function setAllPrint(checked) {
+  const ids = ['trad','gresto','bgraines','mais','rustique',
+    'nieulais','galet','odette','odgraines',
+    'seigle','sarrasin','epeautre','engrain',
+    'brioche','mie','cacao'];
+  ids.forEach(id => {
+    const cb = document.getElementById('pcb-' + id);
+    const card = document.getElementById(id);
+    if (cb) cb.checked = checked;
+    if (card) card.classList.toggle('print-off', !checked);
+  });
+  updatePrintCount();
+}
+function updatePrintCount() {
+  const total = document.querySelectorAll('[id^="pcb-"]').length;
+  const checked = document.querySelectorAll('[id^="pcb-"]:checked').length;
+  const el = document.getElementById('print-count');
+  if (el) el.textContent = checked + ' / ' + total + ' recette' + (checked > 1 ? 's' : '') + ' sélectionnée' + (checked > 1 ? 's' : '');
+}
+
 recalc();
+// Init print count after DOM ready
+setTimeout(updatePrintCount, 100);
 </script>
 </body>
 </html>
