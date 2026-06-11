@@ -334,39 +334,53 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     text-transform: uppercase;
   }
 
-  /* ---- GRILLE 2 COLONNES ---- */
-  #view-production {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    column-gap: 5mm;
-    row-gap: 4px;
-    align-items: start;
-  }
-  .levains-grid, .sec-title, .synth-block, .print-header { grid-column: 1 / -1; }
+  /* ---- LAYOUT 2 COLONNES VIA FLEX ROWS ---- */
+  /* Fiable sous Chrome : break-inside fonctionne sur flex, pas toujours sur grid */
+  #view-production { display: block; }
 
-  /* Recette = 1 cellule, jamais coupée */
-  .rcard {
+  /* Chaque .print-row = 2 recettes côte à côte */
+  .print-row {
+    display: flex;
+    gap: 5mm;
+    margin-bottom: 4px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    align-items: flex-start;
+  }
+  /* Saut de page après cette rangée */
+  .print-page-break {
+    break-after: page;
+    page-break-after: always;
+  }
+  /* Chaque recette = moitié de la rangée */
+  .print-row .rcard {
+    flex: 1;
+    min-width: 0;
     break-inside: avoid;
     page-break-inside: avoid;
     border: 1.5px solid #555;
     border-radius: 0;
     margin-bottom: 0;
-    width: 100%;
   }
-
-  /* ---- SAUTS DE PAGE PRECIS ---- */
-  #rustique  { break-after: page; page-break-after: always; }
-  #odgraines { break-after: page; page-break-after: always; }
-  #sarrasin  { break-after: page; page-break-after: always; }
+  /* Recette seule : occupe la moitié gauche */
+  .print-row-single .rcard {
+    flex: none;
+    width: calc(50% - 2.5mm);
+  }
+  /* Masquer recettes à 0 pièce */
+  .rcard.no-production { display: none !important; }
 
   /* ---- EN-TÊTE RECETTE ---- */
   .rhead {
     background: #222 !important; color: #fff !important;
-    padding: 5px 9px; border-bottom: none;
+    padding: 4px 8px; border-bottom: none;
     display: flex; align-items: center;
     justify-content: space-between; flex-wrap: nowrap; gap: 4px;
+    min-height: 0;
   }
-  .rname  { font-size: 11.5px; font-weight: 800; color: #fff !important; letter-spacing: .01em; }
+  .rname  { font-size: 11px; font-weight: 800; color: #fff !important;
+            letter-spacing: .01em; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; }
   .rpoids {
     font-size: 9.5px; font-weight: 700; color: #ccc !important;
     background: rgba(255,255,255,.12); padding: 1px 6px; white-space: nowrap;
@@ -595,6 +609,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   <div class="sec-title">Baguettes</div>
 
   <!-- BAGUETTE TRADITION -->
+  <div class="sec-title">Baguettes</div>
+  <div class="print-row">
   <div class="rcard" id="trad">
     <div class="rhead">
       <div><span class="rname">Baguette Tradition</span> <span class="rpoids">350 g</span></div>
@@ -612,8 +628,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-trad" oninput="autoResize(this)"></textarea></div>
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-trad"></tbody></table>
   </div>
-
-  <!-- PAIN GRAINES RESTAURATION -->
   <div class="rcard" id="gresto">
     <div class="rhead">
       <div><span class="rname">Pain Graines — Restauration</span> <span class="rpoids">1 300 g</span></div>
@@ -630,8 +644,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-gresto" oninput="autoResize(this)"></textarea></div>
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-gresto"></tbody></table>
   </div>
-
-  <!-- BAGUETTE GRAINES -->
+  </div>
+  <div class="print-row">
   <div class="rcard" id="bgraines">
     <div class="rhead">
       <div><span class="rname">Baguette Graines</span> <span class="rpoids">300 g</span></div>
@@ -648,8 +662,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-bgraines" oninput="autoResize(this)"></textarea></div>
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-bgraines"></tbody></table>
   </div>
-
-  <!-- BAGUETTE MAÏS -->
   <div class="rcard" id="mais">
     <div class="rhead">
       <div><span class="rname">Baguette Maïs</span> <span class="rpoids">300 g</span></div>
@@ -666,8 +678,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-mais" oninput="autoResize(this)"></textarea></div>
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-mais"></tbody></table>
   </div>
-
-  <!-- BAGUETTE RUSTIQUE -->
+  </div>
+  <div class="print-row print-page-break print-row-single">
   <div class="rcard" id="rustique">
     <div class="rhead">
       <div><span class="rname">Baguette Rustique T110</span> <span class="rpoids">350 g</span></div>
@@ -685,11 +697,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-rustique" oninput="autoResize(this)"></textarea></div>
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-rustique"></tbody></table>
   </div>
-
-  <!-- ===== PAINS SPECIAUX ===== -->
+  </div>
   <div class="sec-title">Pains spéciaux</div>
-
-  <!-- NIEULAIS — formats 650 / 1300 / 2500 + Sportif -->
+  <div class="print-row">
   <div class="rcard" id="nieulais">
     <div class="rhead">
       <div><span class="rname">Le Nieulais T110</span> <span class="rpoids">650 · 1300 · 2500 g</span></div>
@@ -713,8 +723,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-nieulais" oninput="autoResize(this)"></textarea></div>
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-nieulais"></tbody></table>
   </div>
-
-  <!-- GALET — formats 650 / 1300 / 2500 -->
   <div class="rcard" id="galet">
     <div class="rhead">
       <div><span class="rname">Le Galet T80</span> <span class="rpoids">650 · 1300 · 2500 g</span></div>
@@ -734,8 +742,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-galet" oninput="autoResize(this)"></textarea></div>
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-galet"></tbody></table>
   </div>
-
-  <!-- ODETTE — formats 650 / 1300 -->
+  </div>
+  <div class="print-row print-page-break">
   <div class="rcard" id="odette">
     <div class="rhead">
       <div><span class="rname">L'Odette Josette T150</span> <span class="rpoids">650 · 1300 g</span></div>
@@ -755,8 +763,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-odette" oninput="autoResize(this)"></textarea></div>
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-odette"></tbody></table>
   </div>
-
-  <!-- ODETTE GRAINES — formats 650 / 1300 -->
   <div class="rcard" id="odgraines">
     <div class="rhead">
       <div><span class="rname">L'Odette aux Graines</span> <span class="rpoids">650 · 1300 g</span></div>
@@ -776,8 +782,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-odgraines" oninput="autoResize(this)"></textarea></div>
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-odgraines"></tbody></table>
   </div>
-
-  <!-- TOURTE DE SEIGLE + SEIGLE CRANBERRIES -->
+  </div>
+  <div class="print-row">
   <div class="rcard" id="epeautre">
     <div class="rhead">
       <div><span class="rname">Grand Épeautre</span> <span class="rpoids">1 300 g</span></div>
@@ -795,8 +801,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-epeautre" oninput="autoResize(this)"></textarea></div>
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-epeautre"></tbody></table>
   </div>
-
-  <!-- SARRASIN -->
   <div class="rcard" id="seigle">
     <div class="rhead">
       <div><span class="rname">Tourte de Seigle</span> <span class="rpoids">900 g</span></div>
@@ -819,8 +823,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-seigle" oninput="autoResize(this)"></textarea></div>
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-seigle"></tbody></table>
   </div>
-
-  <!-- GRAND ÉPEAUTRE -->
+  </div>
+  <div class="print-row">
   <div class="rcard" id="engrain">
     <div class="rhead">
       <div><span class="rname">Engrain — Petit Épeautre</span> <span class="rpoids">900 g</span></div>
@@ -838,8 +842,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-engrain" oninput="autoResize(this)"></textarea></div>
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-engrain"></tbody></table>
   </div>
-
-  <!-- ENGRAIN (PETIT ÉPEAUTRE) -->
   <div class="rcard" id="sarrasin">
     <div class="rhead">
       <div><span class="rname">Le Sarrasin</span> <span class="rpoids">1 100 g</span></div>
@@ -857,11 +859,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-sarrasin" oninput="autoResize(this)"></textarea></div>
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-sarrasin"></tbody></table>
   </div>
-
-  <!-- ===== VIENNOISERIE ===== -->
-  <div class="sec-title">Viennoiserie & pâtisserie</div>
-
-  <!-- BRIOCHE -->
+  </div>
+  <div class="print-row print-page-break">
   <div class="rcard" id="brioche">
     <div class="rhead">
       <div><span class="rname">Brioche</span> <span class="rpoids">450 g</span></div>
@@ -878,8 +877,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-brioche" oninput="autoResize(this)"></textarea></div>
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-brioche"></tbody></table>
   </div>
-
-  <!-- PAIN DE MIE -->
   <div class="rcard" id="mie">
     <div class="rhead">
       <div><span class="rname">Pain de Mie</span> <span class="rpoids">550 g</span></div>
@@ -896,8 +893,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-mie" oninput="autoResize(this)"></textarea></div>
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-mie"></tbody></table>
   </div>
-
-  <!-- PAIN CACAO -->
+  </div>
+  <div class="sec-title">Viennoiserie &amp; pâtisserie</div>
+  <div class="print-row print-row-single">
   <div class="rcard" id="cacao">
     <div class="rhead">
       <div><span class="rname">Pain Cacao</span> <span class="rpoids">150 g</span></div>
@@ -913,6 +911,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     </div>
     <div class="rcomment"><textarea rows="1" placeholder="Commentaires…" id="c-cacao" oninput="autoResize(this)"></textarea></div>
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-cacao"></tbody></table>
+  </div>
   </div>
 
   <!-- ===== SYNTHESES (cachées, imprimables à la demande) ===== -->
@@ -1086,6 +1085,9 @@ function calcRecipe(key){
 function renderTable(key, res) {
   const tb = document.getElementById('tb-' + key);
   if (!tb) return;
+  // Marquer la carte comme sans production pour l'impression auto
+  const card = document.getElementById(key);
+  if (card) card.classList.toggle('no-production', res.totalPate === 0);
   const r = RECIPES[key];
   const hasProd = res.totalPate > 0;
   let html = '';
