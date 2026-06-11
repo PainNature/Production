@@ -190,90 +190,155 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 /* à l'impression : masquer les cartes décochées */
 
 /* ============================================================
-   PRINT — Brother HL-L2375DW — 2 colonnes cote a cote
-   Zone : 200x287mm | 2 cols (97mm) | row_h 8mm | font 11px
+   PRINT — Brother HL-L2375DW — 2 colonnes / 4 recettes par page
+   Levains pleine largeur | recettes en grid 2 cols
+   row_h ~8mm | font 11px | fonds allégés
    ============================================================ */
 @media print {
   @page { size:A4; margin:5mm; }
   body { background:#fff !important; font-size:11px; line-height:1.4; color:#000; }
   * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+
+  /* Masquer chrome */
   .topbar,.sidebar,.qtotals,.no-print,.trac-toolbar,.btn-tab,.btn-gist,
   .rcomment,.print-cb-wrap,#print-select-bar { display:none !important; }
   .rcard.print-off { display:none !important; }
   .layout { display:block; }
-  .main { padding:0; max-width:none; }
-  /* Grille 2 colonnes pour les recettes */
-  #view-production { columns:2; column-gap:5mm; }
-  .levains-grid,.sec-title,.synth-block { column-span:all; }
-  .rcard { break-inside:avoid; page-break-inside:avoid;
-           display:inline-block; width:100%;
-           border:1px solid #999; border-radius:0; margin-bottom:4px; vertical-align:top; }
-  /* Levains pleine largeur */
-  .levains-grid { display:grid !important; grid-template-columns:repeat(3,1fr);
-                  gap:4px; margin-bottom:5px; break-inside:avoid; }
-  .levain-card { border:1px solid #999; border-radius:0; }
-  .levain-head { padding:4px 8px; font-size:10px; font-weight:800; }
-  .lh-liq,.lh-eng,.lh-dur { background:#444 !important; color:#fff !important; border-bottom:1.5px solid #666; }
-  .lh-total { font-family:monospace; font-size:12px; font-weight:800; }
-  .levain-row { padding:3px 8px; font-size:10px; }
-  .lr-name { color:#444 !important; font-weight:600; }
-  .lr-val { font-size:11px; font-weight:700; color:#000 !important; }
+  .main   { padding:0; max-width:none; }
+
+  /* ---- Levains : pleine largeur, 3 colonnes ---- */
+  .levains-grid {
+    display:grid !important;
+    grid-template-columns:repeat(3,1fr);
+    gap:4px; margin-bottom:5px;
+    width:100%; break-inside:avoid;
+  }
+  .levain-card  { border:1px solid #999; border-radius:0; }
+  .levain-head  { padding:4px 8px; font-size:10px; font-weight:800; }
+  .lh-liq,.lh-eng,.lh-dur {
+    background:#444 !important; color:#fff !important;
+    border-bottom:1.5px solid #666;
+  }
+  .lh-total  { font-family:monospace; font-size:12px; font-weight:800; }
+  .levain-row { padding:3px 8px; font-size:10.5px; }
+  .lr-name   { color:#444 !important; font-weight:600; }
+  .lr-val    { font-size:11px; font-weight:700; color:#000 !important; }
   .lr-souche { border-bottom:1px solid #e0e0e0; }
   .lr-souche .lr-val { font-size:12px; font-weight:800; }
-  /* Titres section */
-  .sec-title { width:100%; margin:5px 0 3px; font-size:8px; font-weight:800;
-               letter-spacing:.1em; color:#333 !important;
-               border-bottom:1.5px solid #888; padding-bottom:2px; break-after:avoid; }
-  /* En-tete recette */
-  .rhead { background:#444 !important; color:#fff !important;
-           padding:4px 8px; border-bottom:none; display:flex;
-           align-items:center; justify-content:space-between; flex-wrap:nowrap; }
-  .rname { font-size:11px; font-weight:800; color:#fff !important; }
+
+  /* ---- Titres de section : pleine largeur ---- */
+  .sec-title {
+    font-size:8px; font-weight:800; letter-spacing:.1em;
+    color:#333 !important; border-bottom:1.5px solid #888;
+    padding-bottom:2px; margin:5px 0 3px;
+    width:100%; break-after:avoid;
+  }
+
+  /* ---- Grille 2 colonnes pour les recettes ---- */
+  /* Toutes les rcards dans un wrapper grid */
+  #view-production {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:auto;
+    column-gap:4mm;
+    row-gap:3px;
+    align-items:start;
+  }
+  /* Levains et titres de section s'étalent sur les 2 colonnes */
+  .levains-grid,
+  .sec-title,
+  .synth-block {
+    grid-column:1 / -1;
+  }
+  /* Chaque recette occupe 1 colonne */
+  .rcard {
+    break-inside:avoid;
+    page-break-inside:avoid;
+    border:1px solid #999;
+    border-radius:0;
+    margin-bottom:0;
+    width:100%;
+  }
+
+  /* ---- En-tête recette : gris foncé ---- */
+  .rhead {
+    background:#444 !important; color:#fff !important;
+    padding:4px 8px; border-bottom:none;
+    display:flex; align-items:center;
+    justify-content:space-between; flex-wrap:nowrap; gap:4px;
+  }
+  .rname  { font-size:11px; font-weight:800; color:#fff !important; }
   .rpoids { font-size:9px; font-weight:700; color:#ddd !important;
             background:rgba(255,255,255,.15); padding:1px 5px; white-space:nowrap; }
   .rcontrols { flex-wrap:nowrap; gap:4px; }
   .cg label { font-size:8px; color:#bbb !important; font-weight:600; }
-  .cg input[type=number] { font-size:11px; font-weight:800; color:#fff !important;
-                            background:transparent !important;
-                            border:1px solid rgba(255,255,255,.4);
-                            width:42px; padding:1px 4px; text-align:center; }
-  .sportif-cg { border-left:1px solid rgba(255,255,255,.3); padding-left:5px; }
-  /* Meta */
-  .rmeta { padding:2px 8px; background:#f0f0f0 !important;
-           border-bottom:1px solid #ccc; font-size:8px; gap:.4rem; }
+  .cg input[type=number] {
+    font-size:11px; font-weight:800; color:#fff !important;
+    background:transparent !important;
+    border:1px solid rgba(255,255,255,.4);
+    width:40px; padding:1px 3px; text-align:center;
+  }
+  .sportif-cg { border-left:1px solid rgba(255,255,255,.25); padding-left:4px; }
+
+  /* ---- Meta ligne ---- */
+  .rmeta {
+    padding:2px 8px; background:#f0f0f0 !important;
+    border-bottom:1px solid #ccc; font-size:8px; gap:.35rem;
+    flex-wrap:wrap;
+  }
   .mi .mk { color:#555 !important; font-weight:600; }
   .mi .mv { color:#000 !important; font-weight:700; }
-  /* Tableau */
-  .itable { font-size:10.5px; }
-  .itable th { padding:3px 7px; font-size:8.5px; font-weight:800;
-               letter-spacing:.03em; border-bottom:1.5px solid #888; }
-  .itable th:first-child { text-align:left; background:#d8d8d8 !important; color:#000; }
+
+  /* ---- Tableau ingrédients ---- */
+  .itable { font-size:10.5px; width:100%; }
+  .itable th {
+    padding:3px 7px; font-size:8.5px; font-weight:800;
+    letter-spacing:.03em; border-bottom:1.5px solid #888;
+  }
+  .itable th:first-child  { text-align:left;  background:#d8d8d8 !important; color:#000; }
   .itable th:nth-child(2) { text-align:right; background:#d8d8d8 !important; color:#444; }
-  .itable th:nth-child(3) { text-align:right; background:#555 !important; color:#fff; }
+  .itable th:nth-child(3) { text-align:right; background:#555 !important;    color:#fff; }
+
+  /* row_h 8mm = padding 4px + font 11px + line-height 1.4 */
   .itable td { padding:4px 7px; border-bottom:1px solid #e8e8e8; }
   .itable tr:nth-child(even) { background:#f5f5f5 !important; }
   .itable .td-name { font-size:10.5px; font-weight:600; color:#000 !important; }
-  .itable .td-base { font-size:9.5px; color:#555 !important; background:#ebebeb !important; font-weight:500; }
+  .itable .td-base { font-size:9.5px; color:#555 !important;
+                     background:#ebebeb !important; font-weight:500; }
   .itable .td-jour { font-size:12px; background:#fff !important; }
   .itable .td-jour strong { color:#000 !important; font-weight:800; }
   .itable .no-prod { font-size:9px; color:#aaa !important; }
+
+  /* Ligne TOTAL : gris clair, texte gras */
   .itable .tr-total td { border-top:1.5px solid #888; }
-  .itable .tr-total .td-name { background:#e0e0e0 !important; color:#333 !important;
-                                font-size:8px; font-weight:800;
-                                text-transform:uppercase; letter-spacing:.05em; }
-  .itable .tr-total .td-base { background:#e0e0e0 !important; color:#555 !important; font-weight:600; }
+  .itable .tr-total .td-name {
+    background:#e0e0e0 !important; color:#333 !important;
+    font-size:8px; font-weight:800; text-transform:uppercase; letter-spacing:.05em;
+  }
+  .itable .tr-total .td-base {
+    background:#e0e0e0 !important; color:#555 !important; font-weight:600;
+  }
   .itable .tr-total .td-jour { background:#e0e0e0 !important; }
   .itable .tr-total .td-jour strong { color:#000 !important; font-size:13px; font-weight:800; }
-  .itable .row-empois td { background:#f0f0f0 !important; }
+
+  /* Lignes spéciales */
+  .itable .row-empois td       { background:#f0f0f0 !important; }
   .itable .row-empois .td-name { font-style:italic; color:#444 !important; }
-  .itable .row-sportif td,.itable .row-cran td { background:#e8e8e8 !important;
-    border-top:1px solid #bbb; border-bottom:1px solid #bbb; }
-  .itable .row-sportif .td-name,.itable .row-cran .td-name { font-weight:800; color:#000 !important; }
-  /* Syntheses */
+  .itable .row-sportif td,
+  .itable .row-cran td {
+    background:#e8e8e8 !important;
+    border-top:1px solid #bbb; border-bottom:1px solid #bbb;
+  }
+  .itable .row-sportif .td-name,
+  .itable .row-cran .td-name { font-weight:800; color:#000 !important; }
+
+  /* ---- Synthèses pleine largeur ---- */
   .synth-block { display:none !important; }
   body.print-synth .synth-block { display:block !important; }
-  .sum-card { break-inside:avoid; column-span:all; border:1px solid #999;
-              border-radius:0; margin-bottom:3px; }
+  .sum-card {
+    grid-column:1 / -1; break-inside:avoid;
+    border:1px solid #999; border-radius:0; margin-bottom:3px;
+  }
   .sum-head { padding:4px 8px; font-size:10px; font-weight:800;
               background:#444 !important; color:#fff !important; }
   .stable th { padding:3px 8px; font-size:9px; font-weight:800;
@@ -281,13 +346,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   .stable td { padding:3px 8px; font-size:10px; }
   .stable .gt td { background:#e0e0e0 !important; color:#000 !important;
                    font-weight:800; border-top:1.5px solid #888; }
-  /* Tracabilite */
+
+  /* ---- Traçabilité ---- */
   body.print-history .tracabilite-view { display:block !important; }
   body.print-history .main:not(.tracabilite-view) { display:none !important; }
   body.print-history .hist-detail { display:block !important; }
-  .hist-entry { border:1px solid #999; margin-bottom:3px; break-inside:avoid; border-radius:0; }
-  .hist-head { padding:4px 8px; background:#444 !important; color:#fff !important; }
-  .hist-date { font-size:11px; font-weight:800; color:#fff !important; }
+  .hist-entry { border:1px solid #999; margin-bottom:3px;
+                break-inside:avoid; border-radius:0; }
+  .hist-head  { padding:4px 8px; background:#444 !important; color:#fff !important; }
+  .hist-date  { font-size:11px; font-weight:800; color:#fff !important; }
 }
 @media(max-width:620px){.sidebar{display:none;}.main{padding:.75rem;}.qtotals{grid-template-columns:repeat(2,1fr);}.rhead{flex-direction:column;}}
 </style>
