@@ -26,7 +26,10 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;}
 
-/* ---- DATE PICKER ---- */
+/* ---- PRINT HEADER (invisible écran, visible impression) ---- */
+.print-header { display:none; }
+
+
 .date-picker{position:relative;}
 .date-display{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:var(--r);padding:4px 12px;font-family:var(--mono);font-size:12px;cursor:pointer;white-space:nowrap;display:block;}
 .date-display:hover{background:rgba(255,255,255,.25);}
@@ -190,171 +193,301 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 /* à l'impression : masquer les cartes décochées */
 
 /* ============================================================
-   PRINT — Brother HL-L2375DW — 2 colonnes / 4 recettes par page
-   Levains pleine largeur | recettes en grid 2 cols
-   row_h ~8mm | font 11px | fonds allégés
+   PRINT QUALITE MAXIMUM — Brother HL-L2375DW 2400×600 dpi
+   Encre noire laser, rendu texte parfait
+   2 colonnes | 4 pages | bandeau date+totaux sur chaque page
+   Sauts : après rustique / odgraines / sarrasin
    ============================================================ */
 @media print {
-  @page { size:A4; margin:5mm; }
-  body { background:#fff !important; font-size:11px; line-height:1.4; color:#000; }
-  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
 
-  /* Masquer chrome */
-  .topbar,.sidebar,.qtotals,.no-print,.trac-toolbar,.btn-tab,.btn-gist,
-  .rcomment,.print-cb-wrap,#print-select-bar { display:none !important; }
+  /* Zone utile Brother : min 4.2mm — on serre à 5mm haut, 6mm bas */
+  @page {
+    size: A4;
+    margin: 14mm 5mm 6mm 5mm; /* top=14mm pour le bandeau fixe */
+  }
+  @page:first {
+    margin-top: 5mm; /* page 1 : pas de bandeau répété, levains en haut */
+  }
+
+  body {
+    background: #fff !important;
+    font-size: 11px;
+    line-height: 1.42;
+    color: #000;
+    font-family: 'Inter', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  /* ---- Masquer éléments inutiles ---- */
+  .topbar, .sidebar, .qtotals, .no-print, .trac-toolbar,
+  .btn-tab, .btn-gist, .print-cb-wrap, #print-select-bar { display:none !important; }
   .rcard.print-off { display:none !important; }
   .layout { display:block; }
-  .main   { padding:0; max-width:none; }
+  .main { padding:0; max-width:none; }
 
-  /* ---- Levains : pleine largeur, 3 colonnes ---- */
+  /* ---- BANDEAU FIXE EN TÊTE DE PAGE ---- */
+  /* Technique running element + fallback grid */
+  @page {
+    @top-left { content: element(pageHeader); }
+  }
+  .print-header {
+    position: running(pageHeader);
+    display: flex !important;
+    align-items: stretch;
+    background: #111 !important;
+    color: #fff !important;
+    width: 200mm;
+    margin: 0;
+    border-bottom: 2px solid #444;
+    font-family: 'DM Mono', monospace;
+    overflow: hidden;
+  }
+  /* Fallback Chrome/Safari (pas de running()) */
+  @supports not (position: running(pageHeader)) {
+    @page { margin-top: 5mm; }
+    .print-header {
+      position: static;
+      display: flex !important;
+      grid-column: 1 / -1;
+      margin-bottom: 5px;
+      border-radius: 0;
+      width: 100%;
+    }
+  }
+  .ph-date {
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff !important;
+    white-space: nowrap;
+    background: #000 !important;
+    display: flex;
+    align-items: center;
+    border-right: 2px solid #444;
+    letter-spacing: .01em;
+  }
+  .ph-totals {
+    display: flex;
+    align-items: stretch;
+    flex: 1;
+  }
+  .ph-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 8px;
+    border-right: 1px solid #333;
+    flex: 1;
+  }
+  .ph-item:last-child { border-right: none; }
+  .ph-label {
+    font-size: 6.5px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #aaa !important;
+    line-height: 1.2;
+  }
+  .ph-val {
+    font-size: 12px;
+    font-weight: 800;
+    color: #fff !important;
+    font-family: 'DM Mono', monospace;
+    line-height: 1.1;
+  }
+
+  /* ---- COMMENTAIRES : visible, BOLD, MAJUSCULES ---- */
+  .rcomment {
+    display: block !important;
+    padding: 3px 8px;
+    border-bottom: 1px solid #ccc;
+    background: #f7f7f7 !important;
+    min-height: 16px;
+  }
+  .rcomment textarea {
+    display: block !important;
+    width: 100%;
+    border: none !important;
+    background: transparent !important;
+    resize: none;
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 10.5px;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    color: #000 !important;
+    padding: 0;
+    min-height: 14px;
+    overflow: hidden;
+    line-height: 1.3;
+  }
+
+  /* ---- LEVAINS : pleine largeur, 3 colonnes ---- */
   .levains-grid {
-    display:grid !important;
-    grid-template-columns:repeat(3,1fr);
-    gap:4px; margin-bottom:5px;
-    width:100%; break-inside:avoid;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin-bottom: 5px;
+    width: 100%;
+    break-inside: avoid;
   }
-  .levain-card  { border:1px solid #999; border-radius:0; }
-  .levain-head  { padding:4px 8px; font-size:10px; font-weight:800; }
-  .lh-liq,.lh-eng,.lh-dur {
-    background:#444 !important; color:#fff !important;
-    border-bottom:1.5px solid #666;
+  .levain-card { border: 1.5px solid #555; border-radius: 0; }
+  .levain-head { padding: 5px 9px; font-size: 10.5px; font-weight: 800; }
+  .lh-liq, .lh-eng, .lh-dur {
+    background: #222 !important; color: #fff !important;
+    border-bottom: 2px solid #555;
   }
-  .lh-total  { font-family:monospace; font-size:12px; font-weight:800; }
-  .levain-row { padding:3px 8px; font-size:10.5px; }
-  .lr-name   { color:#444 !important; font-weight:600; }
-  .lr-val    { font-size:11px; font-weight:700; color:#000 !important; }
-  .lr-souche { border-bottom:1px solid #e0e0e0; }
-  .lr-souche .lr-val { font-size:12px; font-weight:800; }
+  .lh-total { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 800; }
+  .levain-row { padding: 3.5px 9px; font-size: 11px; }
+  .lr-name { color: #333 !important; font-weight: 600; }
+  .lr-val  { font-size: 11.5px; font-weight: 700; color: #000 !important; }
+  .lr-souche { border-bottom: 1px solid #ddd; }
+  .lr-souche .lr-val { font-size: 13px; font-weight: 800; }
 
-  /* ---- Titres de section : pleine largeur ---- */
+  /* ---- TITRES DE SECTION ---- */
   .sec-title {
-    font-size:8px; font-weight:800; letter-spacing:.1em;
-    color:#333 !important; border-bottom:1.5px solid #888;
-    padding-bottom:2px; margin:5px 0 3px;
-    width:100%; break-after:avoid;
+    font-size: 8px; font-weight: 800; letter-spacing: .12em;
+    color: #000 !important; border-bottom: 2px solid #000;
+    padding: 3px 0 2px; margin: 5px 0 3px;
+    width: 100%; break-after: avoid; grid-column: 1 / -1;
+    text-transform: uppercase;
   }
 
-  /* ---- Grille 2 colonnes pour les recettes ---- */
-  /* Toutes les rcards dans un wrapper grid */
+  /* ---- GRILLE 2 COLONNES ---- */
   #view-production {
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    grid-template-rows:auto;
-    column-gap:4mm;
-    row-gap:3px;
-    align-items:start;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 5mm;
+    row-gap: 4px;
+    align-items: start;
   }
-  /* Levains et titres de section s'étalent sur les 2 colonnes */
-  .levains-grid,
-  .sec-title,
-  .synth-block {
-    grid-column:1 / -1;
-  }
-  /* Chaque recette occupe 1 colonne */
+  .levains-grid, .sec-title, .synth-block, .print-header { grid-column: 1 / -1; }
+
+  /* Recette = 1 cellule, jamais coupée */
   .rcard {
-    break-inside:avoid;
-    page-break-inside:avoid;
-    border:1px solid #999;
-    border-radius:0;
-    margin-bottom:0;
-    width:100%;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border: 1.5px solid #555;
+    border-radius: 0;
+    margin-bottom: 0;
+    width: 100%;
   }
 
-  /* ---- En-tête recette : gris foncé ---- */
+  /* ---- SAUTS DE PAGE PRECIS ---- */
+  #rustique  { break-after: page; page-break-after: always; }
+  #odgraines { break-after: page; page-break-after: always; }
+  #sarrasin  { break-after: page; page-break-after: always; }
+
+  /* ---- EN-TÊTE RECETTE ---- */
   .rhead {
-    background:#444 !important; color:#fff !important;
-    padding:4px 8px; border-bottom:none;
-    display:flex; align-items:center;
-    justify-content:space-between; flex-wrap:nowrap; gap:4px;
+    background: #222 !important; color: #fff !important;
+    padding: 5px 9px; border-bottom: none;
+    display: flex; align-items: center;
+    justify-content: space-between; flex-wrap: nowrap; gap: 4px;
   }
-  .rname  { font-size:11px; font-weight:800; color:#fff !important; }
-  .rpoids { font-size:9px; font-weight:700; color:#ddd !important;
-            background:rgba(255,255,255,.15); padding:1px 5px; white-space:nowrap; }
-  .rcontrols { flex-wrap:nowrap; gap:4px; }
-  .cg label { font-size:8px; color:#bbb !important; font-weight:600; }
+  .rname  { font-size: 11.5px; font-weight: 800; color: #fff !important; letter-spacing: .01em; }
+  .rpoids {
+    font-size: 9.5px; font-weight: 700; color: #ccc !important;
+    background: rgba(255,255,255,.12); padding: 1px 6px; white-space: nowrap;
+    border: 1px solid rgba(255,255,255,.2); border-radius: 2px;
+  }
+  .rcontrols { flex-wrap: nowrap; gap: 5px; }
+  .cg label { font-size: 8.5px; color: #aaa !important; font-weight: 600; }
   .cg input[type=number] {
-    font-size:11px; font-weight:800; color:#fff !important;
-    background:transparent !important;
-    border:1px solid rgba(255,255,255,.4);
-    width:40px; padding:1px 3px; text-align:center;
+    font-size: 12px; font-weight: 800; color: #fff !important;
+    background: transparent !important;
+    border: 1px solid rgba(255,255,255,.35);
+    width: 42px; padding: 1px 4px; text-align: center;
+    border-radius: 2px;
   }
-  .sportif-cg { border-left:1px solid rgba(255,255,255,.25); padding-left:4px; }
+  .sportif-cg { border-left: 1px solid rgba(255,255,255,.2); padding-left: 5px; }
 
-  /* ---- Meta ligne ---- */
+  /* ---- META LIGNE ---- */
   .rmeta {
-    padding:2px 8px; background:#f0f0f0 !important;
-    border-bottom:1px solid #ccc; font-size:8px; gap:.35rem;
-    flex-wrap:wrap;
+    padding: 3px 9px; background: #efefef !important;
+    border-bottom: 1px solid #ccc; font-size: 8.5px;
+    gap: .5rem; flex-wrap: wrap;
   }
-  .mi .mk { color:#555 !important; font-weight:600; }
-  .mi .mv { color:#000 !important; font-weight:700; }
+  .mi .mk { color: #444 !important; font-weight: 700; }
+  .mi .mv { color: #000 !important; font-weight: 800; }
+  .mi .mv.ok, .mi .mv.warn { color: #000 !important; font-weight: 800; }
 
-  /* ---- Tableau ingrédients ---- */
-  .itable { font-size:10.5px; width:100%; }
+  /* ---- TABLEAU INGRÉDIENTS ---- */
+  .itable { font-size: 11px; width: 100%; border-collapse: collapse; }
+
+  /* En-têtes colonnes */
   .itable th {
-    padding:3px 7px; font-size:8.5px; font-weight:800;
-    letter-spacing:.03em; border-bottom:1.5px solid #888;
+    padding: 3px 8px; font-size: 9px; font-weight: 800;
+    letter-spacing: .04em; text-transform: uppercase;
+    border-bottom: 2px solid #666;
   }
-  .itable th:first-child  { text-align:left;  background:#d8d8d8 !important; color:#000; }
-  .itable th:nth-child(2) { text-align:right; background:#d8d8d8 !important; color:#444; }
-  .itable th:nth-child(3) { text-align:right; background:#555 !important;    color:#fff; }
+  .itable th:first-child  { text-align: left;  background: #ccc !important; color: #000; }
+  .itable th:nth-child(2) { text-align: right; background: #ccc !important; color: #333; }
+  .itable th:nth-child(3) { text-align: right; background: #333 !important; color: #fff; }
 
-  /* row_h 8mm = padding 4px + font 11px + line-height 1.4 */
-  .itable td { padding:4px 7px; border-bottom:1px solid #e8e8e8; }
-  .itable tr:nth-child(even) { background:#f5f5f5 !important; }
-  .itable .td-name { font-size:10.5px; font-weight:600; color:#000 !important; }
-  .itable .td-base { font-size:9.5px; color:#555 !important;
-                     background:#ebebeb !important; font-weight:500; }
-  .itable .td-jour { font-size:12px; background:#fff !important; }
-  .itable .td-jour strong { color:#000 !important; font-weight:800; }
-  .itable .no-prod { font-size:9px; color:#aaa !important; }
+  /* Lignes ingrédients */
+  .itable td { padding: 4px 8px; border-bottom: 1px solid #e0e0e0; }
+  .itable tr:nth-child(even) { background: #f4f4f4 !important; }
+  .itable .td-name { font-size: 11px; font-weight: 600; color: #000 !important; }
+  .itable .td-base { font-size: 10px; color: #444 !important; background: #e8e8e8 !important; font-weight: 500; }
+  .itable .td-jour { font-size: 13px; background: #fff !important; }
+  .itable .td-jour strong { color: #000 !important; font-weight: 800; }
+  .itable .no-prod { font-size: 9px; color: #bbb !important; }
 
-  /* Ligne TOTAL : gris clair, texte gras */
-  .itable .tr-total td { border-top:1.5px solid #888; }
+  /* Ligne TOTAL — sobre, gris clair */
+  .itable .tr-total td { border-top: 2px solid #666; }
   .itable .tr-total .td-name {
-    background:#e0e0e0 !important; color:#333 !important;
-    font-size:8px; font-weight:800; text-transform:uppercase; letter-spacing:.05em;
+    background: #ddd !important; color: #222 !important;
+    font-size: 8.5px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .05em;
   }
-  .itable .tr-total .td-base {
-    background:#e0e0e0 !important; color:#555 !important; font-weight:600;
-  }
-  .itable .tr-total .td-jour { background:#e0e0e0 !important; }
-  .itable .tr-total .td-jour strong { color:#000 !important; font-size:13px; font-weight:800; }
+  .itable .tr-total .td-base { background: #ddd !important; color: #444 !important; font-weight: 600; }
+  .itable .tr-total .td-jour { background: #ddd !important; }
+  .itable .tr-total .td-jour strong { color: #000 !important; font-size: 14px; font-weight: 800; }
 
   /* Lignes spéciales */
-  .itable .row-empois td       { background:#f0f0f0 !important; }
-  .itable .row-empois .td-name { font-style:italic; color:#444 !important; }
+  .itable .row-empois td { background: #f0f0f0 !important; }
+  .itable .row-empois .td-name { font-style: italic; color: #333 !important; }
   .itable .row-sportif td,
   .itable .row-cran td {
-    background:#e8e8e8 !important;
-    border-top:1px solid #bbb; border-bottom:1px solid #bbb;
+    background: #e4e4e4 !important;
+    border-top: 1.5px solid #999; border-bottom: 1.5px solid #999;
   }
   .itable .row-sportif .td-name,
-  .itable .row-cran .td-name { font-weight:800; color:#000 !important; }
+  .itable .row-cran .td-name { font-weight: 800; color: #000 !important; }
 
-  /* ---- Synthèses pleine largeur ---- */
-  .synth-block { display:none !important; }
-  body.print-synth .synth-block { display:block !important; }
+  /* ---- SYNTHÈSES pleine largeur ---- */
+  .synth-block { display: none !important; }
+  body.print-synth .synth-block { display: block !important; }
   .sum-card {
-    grid-column:1 / -1; break-inside:avoid;
-    border:1px solid #999; border-radius:0; margin-bottom:3px;
+    grid-column: 1 / -1; break-inside: avoid;
+    border: 1.5px solid #555; border-radius: 0; margin-bottom: 4px;
   }
-  .sum-head { padding:4px 8px; font-size:10px; font-weight:800;
-              background:#444 !important; color:#fff !important; }
-  .stable th { padding:3px 8px; font-size:9px; font-weight:800;
-               background:#d8d8d8 !important; color:#000 !important; }
-  .stable td { padding:3px 8px; font-size:10px; }
-  .stable .gt td { background:#e0e0e0 !important; color:#000 !important;
-                   font-weight:800; border-top:1.5px solid #888; }
+  .sum-head {
+    padding: 5px 9px; font-size: 11px; font-weight: 800;
+    background: #222 !important; color: #fff !important;
+  }
+  .stable th {
+    padding: 3px 9px; font-size: 9px; font-weight: 800;
+    background: #ccc !important; color: #000 !important;
+    border-bottom: 1.5px solid #888;
+  }
+  .stable td { padding: 4px 9px; font-size: 11px; }
+  .stable .gt td {
+    background: #ddd !important; color: #000 !important;
+    font-weight: 800; border-top: 2px solid #666;
+  }
 
-  /* ---- Traçabilité ---- */
-  body.print-history .tracabilite-view { display:block !important; }
-  body.print-history .main:not(.tracabilite-view) { display:none !important; }
-  body.print-history .hist-detail { display:block !important; }
-  .hist-entry { border:1px solid #999; margin-bottom:3px;
-                break-inside:avoid; border-radius:0; }
-  .hist-head  { padding:4px 8px; background:#444 !important; color:#fff !important; }
-  .hist-date  { font-size:11px; font-weight:800; color:#fff !important; }
+  /* ---- TRAÇABILITÉ ---- */
+  body.print-history .tracabilite-view { display: block !important; }
+  body.print-history .main:not(.tracabilite-view) { display: none !important; }
+  body.print-history .hist-detail { display: block !important; }
+  .hist-entry {
+    border: 1.5px solid #555; margin-bottom: 4px;
+    break-inside: avoid; border-radius: 0;
+  }
+  .hist-head { padding: 5px 9px; background: #222 !important; color: #fff !important; }
+  .hist-date { font-size: 11px; font-weight: 800; color: #fff !important; }
 }
 @media(max-width:620px){.sidebar{display:none;}.main{padding:.75rem;}.qtotals{grid-template-columns:repeat(2,1fr);}.rhead{flex-direction:column;}}
 </style>
@@ -431,6 +564,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <button onclick="setAllPrint(true)"  style="padding:3px 10px;border:1px solid var(--border-strong);border-radius:var(--r);background:#fff;cursor:pointer;font-size:11px;font-family:var(--mono);">✓ Tout cocher</button>
     <button onclick="setAllPrint(false)" style="padding:3px 10px;border:1px solid var(--border-strong);border-radius:var(--r);background:#fff;cursor:pointer;font-size:11px;font-family:var(--mono);">✗ Tout décocher</button>
     <span id="print-count" style="margin-left:auto;color:var(--text-light);font-size:10px;"></span>
+  </div>
+
+  <!-- BANDEAU IMPRESSION (masqué à l'écran) -->
+  <div class="print-header" id="print-header">
+    <div class="ph-date" id="ph-date">—</div>
+    <div class="ph-totals">
+      <span class="ph-item"><span class="ph-label">Pâte crue totale</span><span class="ph-val" id="ph-pate">—</span></span>
+      <span class="ph-item"><span class="ph-label">Farine totale</span><span class="ph-val" id="ph-farine">—</span></span>
+      <span class="ph-item"><span class="ph-label">Levain liq. blé</span><span class="ph-val" id="ph-levliq">—</span></span>
+      <span class="ph-item"><span class="ph-label">Levain dur</span><span class="ph-val" id="ph-levdur">—</span></span>
+      <span class="ph-item"><span class="ph-label">Pièces totales</span><span class="ph-val" id="ph-pieces">—</span></span>
+    </div>
   </div>
 
   <!-- LEVAINS -->
@@ -1105,6 +1250,13 @@ function recalc(){
     `<tr class="gt green"><td>TOTAL FARINE</td><td>${fmt(tot)}</td><td>100 %</td></tr>`;}
 
   window._lastCalc={sumRows,farineMap,lev:L,totalPate,totalPieces};
+  // Mise à jour bandeau impression
+  const _s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  _s('ph-pate',(totalPate/1000).toFixed(1)+' kg');
+  _s('ph-farine',(totalFarine/1000).toFixed(1)+' kg');
+  _s('ph-levliq',fmt(L.T4)+' g');
+  _s('ph-levdur',fmt(L.T6)+' g');
+  _s('ph-pieces',totalPieces+' pcs');
   } catch(e) { console.error('recalc error:', e); }
 }
 
@@ -1264,6 +1416,9 @@ function setDate(d){
   document.title='Production '+formatDateDisplay(d);
   document.querySelectorAll('.day-btn').forEach(btn=>btn.classList.toggle('selected',btn.dataset.iso===formatDateISO(d)));
   const ci=document.getElementById('date-custom');if(ci)ci.value=formatDateISO(d);
+  // Mise à jour bandeau impression
+  const phd=document.getElementById('ph-date');
+  if(phd)phd.textContent='Pain Nature — Fabrication : '+formatDateDisplay(d);
 }
 function buildDateDropdown(){
   const container=document.getElementById('date-days');if(!container)return;
