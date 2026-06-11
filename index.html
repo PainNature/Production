@@ -278,9 +278,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     line-height: 1.1;
   }
 
-  /* ---- COMMENTAIRES : visible, BOLD, MAJUSCULES ---- */
+  /* ---- COMMENTAIRES : masqués à impression pour compacité ---- */
   .rcomment {
-    display: block !important;
+    display: none !important;
     padding: 3px 8px;
     border-bottom: 1px solid #ccc;
     background: #f7f7f7 !important;
@@ -421,7 +421,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   .itable th:nth-child(3) { text-align: right; background: #333 !important; color: #fff; }
 
   /* Lignes ingrédients */
-  .itable td { padding: 4px 8px; border-bottom: 1px solid #e0e0e0; }
+  .itable td { padding: 3px 8px; border-bottom: 1px solid #e0e0e0; }
   .itable tr:nth-child(even) { background: #f4f4f4 !important; }
   .itable .td-name { font-size: 11px; font-weight: 600; color: #000 !important; }
   .itable .td-base { font-size: 10px; color: #444 !important; background: #e8e8e8 !important; font-weight: 500; }
@@ -743,7 +743,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-galet"></tbody></table>
   </div>
   </div>
-  <div class="print-row print-page-break">
+  <div class="print-row">
   <div class="rcard" id="odette">
     <div class="rhead">
       <div><span class="rname">L'Odette Josette T150</span> <span class="rpoids">650 · 1300 g</span></div>
@@ -783,7 +783,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-odgraines"></tbody></table>
   </div>
   </div>
-  <div class="print-row">
+  <div class="print-row print-page-break">
   <div class="rcard" id="epeautre">
     <div class="rhead">
       <div><span class="rname">Grand Épeautre</span> <span class="rpoids">1 300 g</span></div>
@@ -824,6 +824,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-seigle"></tbody></table>
   </div>
   </div>
+  <div class="sec-title">Viennoiserie &amp; pâtisserie</div>
   <div class="print-row">
   <div class="rcard" id="engrain">
     <div class="rhead">
@@ -860,7 +861,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-sarrasin"></tbody></table>
   </div>
   </div>
-  <div class="print-row print-page-break">
+  <div class="print-row">
   <div class="rcard" id="brioche">
     <div class="rhead">
       <div><span class="rname">Brioche</span> <span class="rpoids">450 g</span></div>
@@ -894,7 +895,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <table class="itable"><thead><tr><th>Ingrédient</th><th style="text-align:right;">Base (g)</th><th style="text-align:right;">Qté du jour (g)</th></tr></thead><tbody id="tb-mie"></tbody></table>
   </div>
   </div>
-  <div class="sec-title">Viennoiserie &amp; pâtisserie</div>
   <div class="print-row print-row-single">
   <div class="rcard" id="cacao">
     <div class="rhead">
