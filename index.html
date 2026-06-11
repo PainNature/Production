@@ -226,56 +226,58 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   .print-header {
     display: flex !important;
     grid-column: 1 / -1;
-    align-items: stretch;
+    align-items: center;
     background: #111 !important;
     color: #fff !important;
     width: 100%;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
     break-inside: avoid;
-    border: 1.5px solid #444;
+    border: 1px solid #444;
+    height: 10mm;
   }
   .ph-date {
-    padding: 5px 10px;
-    font-size: 12px;
+    padding: 2px 8px;
+    font-size: 10px;
     font-weight: 800;
     color: #fff !important;
     white-space: nowrap;
     background: #000 !important;
     display: flex;
     align-items: center;
-    border-right: 2px solid #444;
-    letter-spacing: .01em;
-    min-width: 0;
+    border-right: 1px solid #444;
+    height: 100%;
   }
   .ph-totals {
     display: flex;
-    align-items: stretch;
+    align-items: center;
     flex: 1;
+    height: 100%;
   }
   .ph-item {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 3px 10px;
+    padding: 1px 6px;
     border-right: 1px solid #333;
     flex: 1;
+    height: 100%;
   }
   .ph-item:last-child { border-right: none; }
   .ph-label {
-    font-size: 7px;
+    font-size: 6px;
     text-transform: uppercase;
-    letter-spacing: .08em;
-    color: #aaa !important;
-    line-height: 1.2;
+    letter-spacing: .07em;
+    color: #999 !important;
+    line-height: 1.1;
     font-weight: 600;
   }
   .ph-val {
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 800;
     color: #fff !important;
     font-family: 'DM Mono', monospace;
-    line-height: 1.1;
+    line-height: 1;
   }
 
   /* ---- COMMENTAIRES : masqués à impression pour compacité ---- */
@@ -606,9 +608,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   </div>
 
   <!-- ===== BAGUETTES ===== -->
-  <div class="sec-title">Baguettes</div>
-
-  <!-- BAGUETTE TRADITION -->
   <div class="sec-title">Baguettes</div>
   <div class="print-row">
   <div class="rcard" id="trad">
