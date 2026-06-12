@@ -205,19 +205,61 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
   .ph-label { font-size:6px; text-transform:uppercase; letter-spacing:.06em; color:#aaa !important; }
   .ph-val { font-size:10px; font-weight:800; color:#fff !important; font-family:monospace; }
   /* Grille 2 colonnes identique à l'écran */
-  /* ---- Grille recettes ---- */
+  /* ---- Layout 2 colonnes : float pour compatibilité Safari/iPad ---- */
+  /* Safari ignore break-inside sur grid — on utilise float à la place */
   .recipe-row {
-    display:grid; grid-template-columns:1fr 1fr; gap:4mm;
-    break-inside:avoid; page-break-inside:avoid;
-    margin-bottom:3mm;  /* réduit de 5mm à 3mm pour faire rentrer rustique en P1 */
+    display: block;
+    width: 100%;
+    overflow: hidden; /* clearfix */
+    margin-bottom: 2mm;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
-  .recipe-row-break { break-after:page; page-break-after:always; margin-bottom:0; }
-  .recipe-row-newpage { break-before:page; page-break-before:always; }
+  .recipe-row::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+  .recipe-col {
+    float: left;
+    width: 48.5%;
+    margin-right: 3%;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .recipe-col:last-child {
+    margin-right: 0;
+  }
+  .recipe-col-empty {
+    float: left;
+    width: 48.5%;
+    visibility: hidden;
+  }
+  /* Saut de page : sur l'élément suivant avec break-before */
+  .recipe-row-break {
+    -webkit-column-break-after: always; /* Safari old */
+    page-break-after: always; /* Safari */
+    break-after: page;        /* standard */
+    margin-bottom: 0;
+  }
+  /* Chaque carte ne se coupe pas */
+  .rcard {
+    -webkit-column-break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    display: block;
+    width: 100%;
+  }
   .recipe-section-title {
-    font-size:9px; font-weight:800; letter-spacing:.1em;
-    text-transform:uppercase; color:#000;
-    border-bottom:2px solid #000; padding-bottom:3px;
-    margin:4mm 0 3mm;  /* réduit de 6mm/4mm à 4mm/3mm */
+    clear: both;
+    display: block;
+    width: 100%;
+    font-size: 9px; font-weight: 800; letter-spacing: .1em;
+    text-transform: uppercase; color: #000;
+    border-bottom: 2px solid #000; padding-bottom: 3px;
+    margin: 3mm 0 2mm;
+    page-break-after: avoid;
+    break-after: avoid;
   }
 
   /* ---- En-tête recette : gris clair, texte noir gras ---- */
@@ -280,7 +322,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
   .itable .tr-total .td-jour strong { font-size:13px; }
 
   /* ---- Levains : gris clair cohérent ---- */
-  .levains-grid { gap:4mm; margin-bottom:6mm; }
+  .levains-grid { gap:3mm; margin-bottom:5mm; }
   .levain-card { break-inside:avoid; }
   .levain-head { padding:5px 9px; font-size:10px; font-weight:800; }
   .lh-liq,.lh-eng,.lh-dur {
@@ -493,7 +535,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
   </div>
 </div>
 </div>
-<div class="recipe-row recipe-row-break recipe-row-half">
+<div class="recipe-row recipe-row-half">
 <div class="recipe-col">  <div class="rcard" id="rustique">
     <div class="rhead">
       <div><span class="rname">Baguette Rustique T110</span> <span class="rpoids">350 g</span></div>
@@ -515,7 +557,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 <div class="recipe-col recipe-col-empty"></div>
 </div>
 <div class="recipe-section-title">Pains spéciaux</div>
-<div class="recipe-row recipe-row-newpage">
+<div class="recipe-row">
 <div class="recipe-col">  <div class="rcard" id="nieulais">
     <div class="rhead">
       <div><span class="rname">Le Nieulais T110</span> <span class="rpoids">650 · 1300 · 2500 g</span></div>
