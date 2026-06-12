@@ -212,6 +212,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
     margin-bottom:3mm;  /* réduit de 5mm à 3mm pour faire rentrer rustique en P1 */
   }
   .recipe-row-break { break-after:page; page-break-after:always; margin-bottom:0; }
+  .recipe-row-newpage { break-before:page; page-break-before:always; }
   .recipe-section-title {
     font-size:9px; font-weight:800; letter-spacing:.1em;
     text-transform:uppercase; color:#000;
@@ -514,7 +515,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 <div class="recipe-col recipe-col-empty"></div>
 </div>
 <div class="recipe-section-title">Pains spéciaux</div>
-<div class="recipe-row">
+<div class="recipe-row recipe-row-newpage">
 <div class="recipe-col">  <div class="rcard" id="nieulais">
     <div class="rhead">
       <div><span class="rname">Le Nieulais T110</span> <span class="rpoids">650 · 1300 · 2500 g</span></div>
