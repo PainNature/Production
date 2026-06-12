@@ -209,14 +209,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
   .recipe-row {
     display:grid; grid-template-columns:1fr 1fr; gap:4mm;
     break-inside:avoid; page-break-inside:avoid;
-    margin-bottom:5mm;  /* espace aéré entre les rangées */
+    margin-bottom:3mm;  /* réduit de 5mm à 3mm pour faire rentrer rustique en P1 */
   }
   .recipe-row-break { break-after:page; page-break-after:always; margin-bottom:0; }
   .recipe-section-title {
     font-size:9px; font-weight:800; letter-spacing:.1em;
     text-transform:uppercase; color:#000;
     border-bottom:2px solid #000; padding-bottom:3px;
-    margin:6mm 0 4mm;  /* espace généreux autour des titres de section */
+    margin:4mm 0 3mm;  /* réduit de 6mm/4mm à 4mm/3mm */
   }
 
   /* ---- En-tête recette : gris clair, texte noir gras ---- */
