@@ -205,60 +205,92 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
   .ph-label { font-size:6px; text-transform:uppercase; letter-spacing:.06em; color:#aaa !important; }
   .ph-val { font-size:10px; font-weight:800; color:#fff !important; font-family:monospace; }
   /* Grille 2 colonnes identique à l'écran */
-  .recipe-row { display:grid; grid-template-columns:1fr 1fr; gap:3mm;
-    break-inside:avoid; page-break-inside:avoid; margin-bottom:3px; }
-  .recipe-row-break { break-after:page; page-break-after:always; }
-  .recipe-section-title { font-size:8px; font-weight:800; letter-spacing:.1em;
-    text-transform:uppercase; color:#000; border-bottom:1.5px solid #000;
-    padding-bottom:2px; margin:4px 0 3px; }
-  /* Recette — en-tête gris clair, texte noir gras */
-  .rhead { background:#e0dbd4 !important; color:#000 !important; padding:3px 7px;
-           border-bottom:1.5px solid #999; }
-  .rname { font-size:10px; font-weight:800; color:#000 !important; }
-  .rpoids { font-size:8px; font-weight:700; color:#333 !important;
-            background:rgba(0,0,0,.08); border:1px solid rgba(0,0,0,.15); }
-  .cg label { font-size:7.5px; color:#444 !important; font-weight:700; }
-  .cg input[type=number] { font-size:10px; font-weight:800; color:#000 !important;
+  /* ---- Grille recettes ---- */
+  .recipe-row {
+    display:grid; grid-template-columns:1fr 1fr; gap:4mm;
+    break-inside:avoid; page-break-inside:avoid;
+    margin-bottom:5mm;  /* espace aéré entre les rangées */
+  }
+  .recipe-row-break { break-after:page; page-break-after:always; margin-bottom:0; }
+  .recipe-section-title {
+    font-size:9px; font-weight:800; letter-spacing:.1em;
+    text-transform:uppercase; color:#000;
+    border-bottom:2px solid #000; padding-bottom:3px;
+    margin:6mm 0 4mm;  /* espace généreux autour des titres de section */
+  }
+
+  /* ---- En-tête recette : gris clair, texte noir gras ---- */
+  .rhead {
+    background:#e0dbd4 !important; color:#000 !important;
+    padding:5px 8px; border-bottom:1.5px solid #999;
+  }
+  .rname { font-size:11px; font-weight:800; color:#000 !important; }
+  .rpoids {
+    font-size:9px; font-weight:700; color:#333 !important;
+    background:rgba(0,0,0,.08); border:1px solid rgba(0,0,0,.15); padding:1px 5px;
+  }
+  .cg label { font-size:8px; color:#444 !important; font-weight:700; }
+  .cg input[type=number] {
+    font-size:10px; font-weight:800; color:#000 !important;
     background:transparent !important; border:1px solid rgba(0,0,0,.3);
-    width:36px; padding:1px 3px; }
+    width:38px; padding:2px 3px;
+  }
   .sportif-cg { border-left:1px solid rgba(0,0,0,.2); }
-  .rmeta { padding:2px 7px; background:#f0ede8 !important; font-size:7.5px;
-           border-bottom:1px solid #bbb; }
+
+  /* ---- Meta ligne ---- */
+  .rmeta {
+    padding:4px 8px; background:#f0ede8 !important;
+    font-size:8px; border-bottom:1px solid #bbb; gap:.5rem;
+  }
   .mi .mk { color:#555 !important; font-weight:600; }
   .mi .mv { color:#000 !important; font-weight:800; }
-  /* Commentaires : visibles, gras, majuscules */
-  .rcomment { display:block !important; padding:2px 7px;
-              background:#f9f7f2 !important; border-bottom:1px solid #ccc;
-              min-height:14px; }
-  .rcomment textarea { display:block !important; width:100%;
-    border:none !important; background:transparent !important; resize:none;
-    font-family:'Inter',sans-serif; font-size:9px; font-weight:800 !important;
+
+  /* ---- Commentaires : visibles, GRAS, MAJUSCULES ---- */
+  .rcomment {
+    display:block !important; padding:4px 8px;
+    background:#fafaf5 !important; border-bottom:1px solid #ccc;
+    min-height:16px;
+  }
+  .rcomment textarea {
+    display:block !important; width:100%;
+    border:none !important; background:transparent !important;
+    resize:none; font-family:'Inter',sans-serif;
+    font-size:9.5px; font-weight:800 !important;
     text-transform:uppercase !important; color:#000 !important;
-    padding:0; min-height:10px; overflow:hidden; line-height:1.3; }
-  /* Table */
-  .itable { font-size:9.5px; }
-  .itable th { padding:2px 6px; font-size:8px; }
+    padding:0; min-height:12px; overflow:hidden; line-height:1.4;
+  }
+
+  /* ---- Tableau ingrédients ---- */
+  .itable { font-size:10px; }
+  .itable th { padding:4px 7px; font-size:8.5px; border-bottom:1.5px solid #888; }
   .itable th:first-child { background:#ccc !important; color:#000; }
   .itable th:nth-child(2) { background:#ccc !important; color:#333; }
   .itable th:nth-child(3) { background:#333 !important; color:#fff; }
-  .itable td { padding:3px 6px; }
+  .itable td { padding:5px 7px; border-bottom:1px solid #ddd; }
   .itable tr:nth-child(even) { background:#f5f5f5 !important; }
-  .itable .td-name { font-size:9.5px; font-weight:600; }
-  .itable .td-base { background:#e8e8e8 !important; font-size:8.5px; color:#444 !important; }
-  .itable .td-jour { font-size:11px; background:#fff !important; }
+  .itable .td-name { font-size:10px; font-weight:600; }
+  .itable .td-base { background:#eaeaea !important; font-size:9px; color:#444 !important; }
+  .itable .td-jour { font-size:12px; background:#fff !important; }
   .itable .td-jour strong { font-weight:800; color:#000 !important; }
-  .itable .tr-total .td-name { background:#ddd !important; font-size:7.5px; }
+  .itable .tr-total td { border-top:1.5px solid #888; }
+  .itable .tr-total .td-name { background:#ddd !important; font-size:8px; }
   .itable .tr-total .td-base { background:#ddd !important; }
   .itable .tr-total .td-jour { background:#ddd !important; }
-  .itable .tr-total .td-jour strong { font-size:12px; }
-  /* Levains — cohérents avec le gris clair des recettes */
-  .levains-grid { gap:3mm; margin-bottom:4px; }
-  .levain-head { padding:3px 7px; font-size:9px; font-weight:800; }
-  .lh-liq,.lh-eng,.lh-dur { background:#ddd !important; color:#000 !important;
-    border-bottom:1.5px solid #999; }
-  .lh-total { font-size:11px; font-weight:800; color:#000 !important; }
-  .levain-row { padding:2.5px 7px; font-size:9.5px; }
-  .lr-souche .lr-val { font-size:11px; font-weight:800; color:#000 !important; }
+  .itable .tr-total .td-jour strong { font-size:13px; }
+
+  /* ---- Levains : gris clair cohérent ---- */
+  .levains-grid { gap:4mm; margin-bottom:6mm; }
+  .levain-card { break-inside:avoid; }
+  .levain-head { padding:5px 9px; font-size:10px; font-weight:800; }
+  .lh-liq,.lh-eng,.lh-dur {
+    background:#ddd !important; color:#000 !important;
+    border-bottom:1.5px solid #999;
+  }
+  .lh-total { font-size:12px; font-weight:800; color:#000 !important; }
+  .levain-row { padding:4px 9px; font-size:10px; }
+  .lr-souche { border-bottom:1px solid #e0e0e0; }
+  .lr-souche .lr-val { font-size:12px; font-weight:800; color:#000 !important; }
+  .lr-val { font-size:10px; font-weight:700; color:#000 !important; }
   /* Synthèses */
   .synth-block { display:none !important; }
   body.print-synth .synth-block { display:block !important; }
@@ -356,7 +388,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 
   <!-- LEVAINS -->
   <div class="sec-title" id="levains">Levains à préparer — souche = 30 %</div>
-<div class="sec-title" id="levains">Levains à préparer — souche = 30 %</div>
   <div class="levains-grid">
     <div class="levain-card">
       <div class="levain-head lh-liq"><span>Levain liquide blé</span><span class="lh-total" id="ll-total">— g</span></div>
